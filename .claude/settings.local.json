@@ -5,7 +5,8 @@
       "Read(//c/Users/JcTheKing/Projects/Yokim/Games/FilesRPG/**)",
       "Bash(cd \"c:\\\\Users\\\\JcTheKing\\\\Projects\\\\Yokim\" && ls -la)",
       "Read(//c/Users/JcTheKing/Projects/Yokim/**)",
-      "WebFetch(domain:pkg.odin-lang.org)"
+      "WebFetch(domain:pkg.odin-lang.org)",
+      "PowerShell(odin version)"
     ]
   }
 }

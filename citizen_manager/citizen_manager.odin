@@ -89,6 +89,9 @@ scan_zone :: proc(dir_path: string, zone_name: string) -> [dynamic]Citizen {
 // save_citizen writes a Citizen back to disk as a .citizen file.
 save_citizen :: proc(c: Citizen, file_path: string) -> bool {
 	// TODO: build the key = value string and call os.write_entire_file
+	citizen_map := make(map[string]Citizen) 
+	defer delete(citizen_map)
+
 	// HINT: use strings.Builder to assemble the text, then:
 	//   os.write_entire_file(file_path, transmute([]byte)result_string)
 	return false

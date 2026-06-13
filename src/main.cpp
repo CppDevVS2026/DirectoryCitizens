@@ -10,7 +10,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR pCmdLine, int nCmdShow
 {
 
     // Register the window class.
-    const wchar_t CLASS_NAME[]  = L"DirectoryCitizens";
+    const wchar_t CLASS_NAME[]  = L"DirectoryCitizens  ·  v0.1  ·  SIMULATION OFFLINE";
 
     WNDCLASS wc = { };
 
@@ -30,11 +30,11 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR pCmdLine, int nCmdShow
     HWND hwnd = CreateWindowEx(
         0,                              // Optional window styles.
         CLASS_NAME,                     // Window class
-        L"DirectoryCitizens",             // Window text
-        WS_POPUP,                         // Window style
+        L"DirectoryCitizens  ·  v0.1  ·  SIMULATION OFFLINE",
+,                                       // Window text
+        WS_POPUP,                       // Window style
         // Size and position
         x, y, width, height,
-
         NULL,       // Parent window
         NULL,       // Menu
         hInstance,  // Instance handle

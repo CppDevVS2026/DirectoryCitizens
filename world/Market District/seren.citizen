@@ -1,0 +1,6 @@
+name   = Seren
+health = 92
+hunger = 20
+sleep  = 90
+social = 80
+status = Gossiping

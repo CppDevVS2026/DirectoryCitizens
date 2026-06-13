@@ -1,0 +1,6 @@
+name   = Mira
+health = 78
+hunger = 60
+sleep  = 50
+social = 30
+status = Guarding gate

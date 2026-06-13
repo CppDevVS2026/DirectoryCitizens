@@ -1,5 +1,5 @@
 @echo off
-odin build . -out:DirectoryCitizens.exe -debug
+odin build src -out:DirectoryCitizens.exe -debug
 if %ERRORLEVEL% == 0 (
     echo Build OK — DirectoryCitizens.exe
 ) else (

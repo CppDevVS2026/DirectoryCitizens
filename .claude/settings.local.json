@@ -6,7 +6,10 @@
       "Bash(cd \"c:\\\\Users\\\\JcTheKing\\\\Projects\\\\Yokim\" && ls -la)",
       "Read(//c/Users/JcTheKing/Projects/Yokim/**)",
       "WebFetch(domain:pkg.odin-lang.org)",
-      "PowerShell(odin version)"
+      "PowerShell(odin version)",
+      "PowerShell(Copy-Item \"c:\\\\Users\\\\JcTheKing\\\\Projects\\\\Yokim\\\\Games\\\\FilesRPG\\\\DirectoryCitizens\\\\types.odin\" \"c:\\\\Users\\\\JcTheKing\\\\Projects\\\\Yokim\\\\Games\\\\FilesRPG\\\\DirectoryCitizens\\\\src\\\\types.odin\")",
+      "PowerShell(Copy-Item \"c:\\\\Users\\\\JcTheKing\\\\Projects\\\\Yokim\\\\Games\\\\FilesRPG\\\\DirectoryCitizens\\\\world.odin\" \"c:\\\\Users\\\\JcTheKing\\\\Projects\\\\Yokim\\\\Games\\\\FilesRPG\\\\DirectoryCitizens\\\\src\\\\world.odin\")",
+      "PowerShell(Copy-Item \"c:\\\\Users\\\\JcTheKing\\\\Projects\\\\Yokim\\\\Games\\\\FilesRPG\\\\DirectoryCitizens\\\\hud.odin\" \"c:\\\\Users\\\\JcTheKing\\\\Projects\\\\Yokim\\\\Games\\\\FilesRPG\\\\DirectoryCitizens\\\\src\\\\hud.odin\")"
     ]
   }
 }

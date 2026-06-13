@@ -1,0 +1,6 @@
+name   = Thane the Elder
+health = 65
+hunger = 80
+sleep  = 20
+social = 55
+status = Sleeping

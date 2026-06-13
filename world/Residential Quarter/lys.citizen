@@ -1,0 +1,6 @@
+name   = Lys
+health = 90
+hunger = 30
+sleep  = 85
+social = 70
+status = Tending garden

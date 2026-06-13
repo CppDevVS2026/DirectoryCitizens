@@ -20,15 +20,20 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR pCmdLine, int nCmdShow
 
     RegisterClass(&wc);
 
+
+    auto x {GetSystemMetrics(SM_CXSCREEN) - 420};
+    auto y {0};
+    auto width {420};
+    auto height {GetSystemMetrics(SM_CYSCREEN)};
+
     // Create the window.
     HWND hwnd = CreateWindowEx(
         0,                              // Optional window styles.
         CLASS_NAME,                     // Window class
         L"DirectoryCitizens",             // Window text
-        WS_OVERLAPPEDWINDOW,            // Window style
-
+        WS_POPUP,                         // Window style
         // Size and position
-        CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
+        x, y, width, height,
 
         NULL,       // Parent window
         NULL,       // Menu

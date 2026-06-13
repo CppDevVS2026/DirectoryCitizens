@@ -4,7 +4,8 @@
       "Bash(cd \"c:\\\\Users\\\\JcTheKing\\\\Projects\\\\Yokim\\\\Games\\\\FilesRPG\" && ls -la)",
       "Read(//c/Users/JcTheKing/Projects/Yokim/Games/FilesRPG/**)",
       "Bash(cd \"c:\\\\Users\\\\JcTheKing\\\\Projects\\\\Yokim\" && ls -la)",
-      "Read(//c/Users/JcTheKing/Projects/Yokim/**)"
+      "Read(//c/Users/JcTheKing/Projects/Yokim/**)",
+      "WebFetch(domain:pkg.odin-lang.org)"
     ]
   }
 }

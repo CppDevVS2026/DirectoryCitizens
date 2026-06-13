@@ -20,9 +20,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR pCmdLine, int nCmdShow
 
     RegisterClass(&wc);
 
-
+    GetSystemMetric
     // Create the window.
-
     HWND hwnd = CreateWindowEx(
         0,                              // Optional window styles.
         CLASS_NAME,                     // Window class

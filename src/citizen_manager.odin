@@ -68,19 +68,19 @@ scan_zone :: proc(dir_path: string, zone_name: string) -> [dynamic]Citizen {
 	result: [dynamic]Citizen
 
 	// TODO: open the directory, iterate files, call load_citizen on each .citizen
-	// HINT:
-	//   handle, open_err := os.open(dir_path)
-	//   if open_err != nil { return result }
-	//   defer os.close(handle)
-	//
-	//   infos, read_err := os.read_dir(handle, -1, context.allocator)
-	//   for info in infos {
-	//       if filepath.ext(info.name) == ".citizen" {
-	//           full_path := filepath.join({dir_path, info.name})
-	//           c, ok := load_citizen(full_path, zone_name)
-	//           if ok { append(&result, c) }
-	//       }
-	//   }
+	handle, open_err := os.open(dir_path) 
+	if open_err != nil { return result }
+	defer os.close(handle)
+
+	// TODO: read the directory entries 
+	infos, read_err := os.read_dir(handle, -1, context.allocator)
+	for info in infos {
+		if filepath.ext(info.name) == ".citizen" {
+			full_path, _ := filepath.join({dir_path, info.name})
+			c, ok := load_citizen(full_path, zone_name)
+			if ok { append(&result, c) }
+		}
+	}
 
 	_ = filepath.ext // suppress unused import until you use it
 	return result

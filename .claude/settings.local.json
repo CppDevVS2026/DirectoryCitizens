@@ -9,7 +9,18 @@
       "PowerShell(odin version)",
       "PowerShell(Copy-Item \"c:\\\\Users\\\\JcTheKing\\\\Projects\\\\Yokim\\\\Games\\\\FilesRPG\\\\DirectoryCitizens\\\\types.odin\" \"c:\\\\Users\\\\JcTheKing\\\\Projects\\\\Yokim\\\\Games\\\\FilesRPG\\\\DirectoryCitizens\\\\src\\\\types.odin\")",
       "PowerShell(Copy-Item \"c:\\\\Users\\\\JcTheKing\\\\Projects\\\\Yokim\\\\Games\\\\FilesRPG\\\\DirectoryCitizens\\\\world.odin\" \"c:\\\\Users\\\\JcTheKing\\\\Projects\\\\Yokim\\\\Games\\\\FilesRPG\\\\DirectoryCitizens\\\\src\\\\world.odin\")",
-      "PowerShell(Copy-Item \"c:\\\\Users\\\\JcTheKing\\\\Projects\\\\Yokim\\\\Games\\\\FilesRPG\\\\DirectoryCitizens\\\\hud.odin\" \"c:\\\\Users\\\\JcTheKing\\\\Projects\\\\Yokim\\\\Games\\\\FilesRPG\\\\DirectoryCitizens\\\\src\\\\hud.odin\")"
+      "PowerShell(Copy-Item \"c:\\\\Users\\\\JcTheKing\\\\Projects\\\\Yokim\\\\Games\\\\FilesRPG\\\\DirectoryCitizens\\\\hud.odin\" \"c:\\\\Users\\\\JcTheKing\\\\Projects\\\\Yokim\\\\Games\\\\FilesRPG\\\\DirectoryCitizens\\\\src\\\\hud.odin\")",
+      "PowerShell(npx skillfish add affaan-m/everything-claude-code prompt-optimizer 2>&1)",
+      "PowerShell(npx skillfish add affaan-m/everything-claude-code continuous-learning-v2 2>&1)",
+      "PowerShell(npx skillfish add affaan-m/everything-claude-code coding-standards 2>&1)",
+      "PowerShell(npx skillfish add pytorch/pytorch skill-writer 2>&1)",
+      "PowerShell(npx skillfish add thedotmack/claude-mem smart-explore 2>&1)",
+      "PowerShell(npx skillfish add melodic-software/claude-code-plugins mentoring-developers 2>&1)",
+      "PowerShell(npx skillfish add gitdevaldo/tanyahukum mentoring-juniors 2>&1)",
+      "PowerShell(npx skillfish add pauljbernard/content learning-mentoring-system 2>&1)",
+      "PowerShell(npx skillfish add charlesjones-dev/claude-code-plugins-dev learn 2>&1)",
+      "PowerShell(npx skillfish add dvcrn/openclaw-skills-marketplace board-of-mentors 2>&1)",
+      "PowerShell(npx skillfish add sethdford/claude-skills mentoring-plan 2>&1)"
     ]
   }
 }

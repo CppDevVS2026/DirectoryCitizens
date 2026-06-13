@@ -68,22 +68,25 @@ load_citizen :: proc(file_path: string, zone_name: string) -> (Citizen, bool) {
 scan_zone :: proc(dir_path: string, zone_name: string) -> [dynamic]Citizen {
 	result: [dynamic]Citizen
 
+	
 	handle, open_err := os.open(dir_path)
-	if open_err != nil {return result}
+	if open_err != nil { return result }
 	defer os.close(handle)
 
 	infos, _ := os.read_dir(handle, -1, context.allocator)
-	for info in infos {
-		if filepath.ext(info.name) == ".citizen" {
-			full_path, _ := filepath.join({dir_path, info.name})
-			defer delete(full_path)
+	defer os.file_info_slice_delete(infos, context.allocator)
 
-			c, ok := load_citizen(full_path, zone_name)
-			if ok {append(&result, c)}
-		}
+	for info in infos {
+		if filepath.ext(info.name) != ".citizen" { continue }
+
+		full_path := filepath.join(dir_path, info.name)
+		defer delete(full_path)
+
+		
 	}
 
-	return result
+
+
 }
 
 // save_citizen writes a Citizen back to disk as a .citizen file.

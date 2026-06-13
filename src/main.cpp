@@ -10,7 +10,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR pCmdLine, int nCmdShow
 {
 
     // Register the window class.
-    const wchar_t CLASS_NAME[]  = L"Sample Window Class";
+    const wchar_t CLASS_NAME[]  = L"DirectoryCitizens";
     
     WNDCLASS wc = { };
 

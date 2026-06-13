@@ -31,7 +31,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR pCmdLine, int nCmdShow
         0,                              // Optional window styles.
         CLASS_NAME,                     // Window class
         L"DirectoryCitizens  ·  v0.1  ·  SIMULATION OFFLINE",
-,                                       // Window text
+                                        // Window text
         WS_POPUP,                       // Window style
         // Size and position
         x, y, width, height,

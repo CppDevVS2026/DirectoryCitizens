@@ -8,6 +8,7 @@ package engine
 	Systems — built one at a time:
 	  NeedsSystem    (active)  — hunger rises, sleep falls, social drifts
 	  BehaviorSystem (E5)      — citizens decide what to do based on needs
+	  PoliticsSystem (E6)      — unrest rises with stressed citizens; exile to The Jail
 	  PoliticsSystem (E6)      — factions, elections, power
 
 	Tick loop:
@@ -129,6 +130,7 @@ push_event :: proc(s: ^GameState, text: cstring, kind: EventKind) {
 	if len(s.events) > 20 {
 		pop(&s.events)
 	}
+	play_event_sound(&s.audio, kind)
 }
 
 // ---------------------------------------------------------------------------
@@ -331,4 +333,109 @@ nearest_populated_zone :: proc(s: ^GameState, current_zone: string, caller_idx: 
 		}
 	}
 	return best_zone
+}
+
+// ---------------------------------------------------------------------------
+// E6 — Politics System
+// ---------------------------------------------------------------------------
+
+/*
+	tick_politics — tracks population-wide unrest and triggers political events.
+
+	Unrest mechanics:
+	  +1 per citizen currently in danger (hunger >= 80 or sleep <= 20)
+	  -2 per citizen who is healthy and content (hunger < 60, sleep > 40)
+	  Clamped to [0, 100].
+
+	Event thresholds:
+	  unrest crosses 30  → "Murmurs of discontent"
+	  unrest crosses 60  → "Open protests in the streets"
+	  unrest crosses 90  → "The population is on the verge of revolt"
+	  unrest reaches 100 → REVOLT: the most stressed citizen is exiled to The Jail
+	                        (their .citizen file is moved; The Eye picks it up live)
+
+	After a revolt, unrest resets to 40 — the underlying grievances remain.
+
+	The Jail acts as the pressure valve: exiled citizens continue their lives
+	there, and their needs still tick. They may die in The Jail if nothing improves.
+*/
+tick_politics :: proc(s: ^GameState) {
+	if len(s.citizens) == 0 { return }
+
+	// Accumulate unrest delta this tick.
+	delta := f32(0)
+	for &c in s.citizens {
+		in_danger := c.hunger >= 80 || c.sleep <= 20
+		if in_danger {
+			delta += 1
+		} else if c.hunger < 60 && c.sleep > 40 {
+			delta -= 2
+		}
+	}
+	delta /= f32(len(s.citizens)) // normalize to per-citizen average
+
+	prev    := s.unrest
+	s.unrest = clamp(s.unrest + delta, 0, 100)
+
+	// Fire threshold events (only on crossing, not repeatedly).
+	cross :: proc(prev, next, threshold: f32) -> bool {
+		return prev < threshold && next >= threshold
+	}
+
+	if cross(prev, s.unrest, 30) {
+		push_event(s, "Murmurs of discontent spread through Root Directory", .Info)
+		play_unrest_sound(&s.audio)
+	}
+	if cross(prev, s.unrest, 60) {
+		push_event(s, "Open protests erupt in the streets", .Info)
+		play_unrest_sound(&s.audio)
+	}
+	if cross(prev, s.unrest, 90) {
+		push_event(s, "The population teeters on the edge of revolt", .Info)
+		play_unrest_sound(&s.audio)
+	}
+
+	// Revolt: exile the most stressed citizen to The Jail.
+	if s.unrest >= 100 {
+		play_revolt_sound(&s.audio)
+		exile_most_stressed(s)
+		s.unrest = 40 // pressure drops, but grievances linger
+	}
+}
+
+/*
+	exile_most_stressed — moves the citizen with the highest stress_ticks
+	into The Jail by renaming their .citizen file on disk.
+
+	The Eye's RENAMED_OLD_NAME / RENAMED_NEW_NAME pair fires automatically,
+	which updates the citizen's path and zone in memory.
+	If The Jail directory doesn't exist yet, the exile is skipped.
+*/
+@(private)
+exile_most_stressed :: proc(s: ^GameState) {
+	// Find the most stressed citizen not already in The Jail.
+	worst_i     := -1
+	worst_ticks := f32(-1)
+	for i in 0..<len(s.citizens) {
+		c := &s.citizens[i]
+		if string(c.zone) == "The Jail" { continue }
+		if c.stress_ticks > worst_ticks {
+			worst_ticks = c.stress_ticks
+			worst_i     = i
+		}
+	}
+	if worst_i < 0 { return }
+
+	c        := &s.citizens[worst_i]
+	old_path := string(c.path)
+
+	// Build the new path: world/The Jail/<name>.citizen
+	name     := strings.clone_to_cstring(strings.to_lower(string(c.name), context.temp_allocator), context.temp_allocator)
+	new_path := fmt.tprintf("world/The Jail/%s.citizen", name)
+
+	// os.rename moves the file. On success The Eye fires Rename events.
+	rename_err := os.rename(old_path, new_path)
+	if rename_err == nil {
+		push_event(s, fmt.ctprintf("%s was dragged to The Jail", c.name), .Move)
+	}
 }

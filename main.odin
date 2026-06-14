@@ -10,7 +10,11 @@ main :: proc() {
 	defer rl.CloseWindow()
 	rl.SetTargetFPS(60)
 
+	rl.InitAudioDevice()
+	defer rl.CloseAudioDevice()
+
 	state := eng.make_game_state()
+	eng.init_audio(&state.audio)
 	defer eng.destroy_game_state(&state)
 
 	for !rl.WindowShouldClose() {
@@ -31,6 +35,16 @@ update :: proc(s: ^eng.GameState, dt: f64) {
 
 	eng.drain_eye_events(&s.eye, s)
 	eng.tick_simulation(s, dt)
+
+	// Drive the stress drone from population stress level.
+	stress := f32(0)
+	if len(s.citizens) > 0 {
+		for &c in s.citizens {
+			if c.hunger >= 80 || c.sleep <= 20 { stress += 1 }
+		}
+		stress /= f32(len(s.citizens))
+	}
+	eng.update_audio(&s.audio, stress)
 
 	// Only orbit when the mouse is over the 3D viewport
 	mouse := rl.GetMousePosition()

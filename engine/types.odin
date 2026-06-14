@@ -53,10 +53,10 @@ GameState :: struct {
 	citizens:       [dynamic]Citizen,
 	zones:          [dynamic]Zone,
 	events:         [dynamic]GameEvent,
-	eye:            EyeState, // live filesystem watcher (The Eye)
-	tick_rate:      f64,      // seconds per simulation step, loaded from world.cfg
-	// E6 — politics
-	unrest:         f32,      // 0–100: rising tension across the population
+	eye:            EyeState,   // live filesystem watcher (The Eye)
+	audio:          AudioState, // procedural reactive audio (E7)
+	tick_rate:      f64,        // seconds per simulation step, loaded from world.cfg
+	unrest:         f32,        // 0–100: rising political tension (E6)
 	selected:       i32,
 	citizen_scroll: i32,
 	tick:           f64,
@@ -84,6 +84,7 @@ make_game_state :: proc() -> GameState {
 	}
 
 	start_the_eye(&s.eye, "world")
+	// Note: init_audio is called from main after InitAudioDevice.
 
 	// Events (newest first)
 	append(&s.events, GameEvent{text="Gareth won the Market election",    kind=.Info})
@@ -97,6 +98,7 @@ make_game_state :: proc() -> GameState {
 }
 
 destroy_game_state :: proc(s: ^GameState) {
+	shutdown_audio(&s.audio)
 	stop_the_eye(&s.eye)
 	delete(s.citizens)
 	delete(s.zones)

@@ -1,9 +1,9 @@
 name   = Lys
 status = Tending a garden that won't grow
 health = 90
-hunger = 74
-sleep  = 63
-social = 59
+hunger = 100
+sleep  = 31
+social = 44
 pos_x  = 7.50
 pos_y  = 0.50
 pos_z  = -3.50

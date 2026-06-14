@@ -2,18 +2,29 @@ package engine
 
 import rl "vendor:raylib"
 
+// What a citizen is currently doing — drives status text and position drift.
+Behavior :: enum u8 {
+	Idle,        // default — no pressing need
+	Eating,      // hunger >= 70, heading toward Market District
+	Sleeping,    // sleep <= 30, resting in place
+	Socializing, // social <= 30, seeking other citizens
+	Working,     // well-fed and rested — productive
+	Wandering,   // low-priority drifting
+}
+
 Citizen :: struct {
-	name:      cstring,
-	zone:      cstring,
-	path:      cstring,      // full path to the .citizen file on disk, e.g. "world/Market District/aldric.citizen"
-	status:    cstring,
-	health:    f32,
-	hunger:    f32,
-	sleep:     f32,
-	social:    f32,
-	stress_ticks:    f32,
-	color:     rl.Color,
-	world_pos: rl.Vector3,
+	name:         cstring,
+	zone:         cstring,
+	path:         cstring,      // full path to the .citizen file on disk, e.g. "world/Market District/aldric.citizen"
+	status:       cstring,
+	health:       f32,
+	hunger:       f32,
+	sleep:        f32,
+	social:       f32,
+	stress_ticks: f32,
+	behavior:     Behavior,     // current activity (runtime-only, not saved to disk)
+	color:        rl.Color,
+	world_pos:    rl.Vector3,
 }
 
 Zone :: struct {
@@ -43,6 +54,7 @@ GameState :: struct {
 	zones:          [dynamic]Zone,
 	events:         [dynamic]GameEvent,
 	eye:            EyeState, // live filesystem watcher (The Eye)
+	tick_rate:      f64,      // seconds per simulation step, loaded from world.cfg
 	selected:       i32,
 	citizen_scroll: i32,
 	tick:           f64,
@@ -59,6 +71,8 @@ make_game_state :: proc() -> GameState {
 		fovy       = 45,
 		projection = .PERSPECTIVE,
 	}
+
+	s.tick_rate = load_world_cfg("world/world.cfg", TICK_RATE)
 
 	s.zones = scan_world("world")
 	for &z in s.zones {

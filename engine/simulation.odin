@@ -17,7 +17,10 @@ package engine
 */
 
 import "core:fmt"
+import "core:math"
 import "core:os"
+import "core:strings"
+import rl "vendor:raylib"
 
 // How many real seconds between simulation steps.
 TICK_RATE :: 2.0
@@ -27,11 +30,11 @@ accumulator: f64
 
 tick_simulation :: proc(s: ^GameState, dt: f64) {
 	accumulator += dt
-	if accumulator < TICK_RATE {return}
-	accumulator -= TICK_RATE
+	if accumulator < s.tick_rate {return}
+	accumulator -= s.tick_rate
 
 	tick_needs(s)
-	// tick_behavior(s)  — E5, not yet implemented
+	tick_behavior(s)
 	// tick_politics(s)  — E6, not yet implemented
 }
 
@@ -126,4 +129,200 @@ push_event :: proc(s: ^GameState, text: cstring, kind: EventKind) {
 	if len(s.events) > 20 {
 		pop(&s.events)
 	}
+}
+
+// ---------------------------------------------------------------------------
+// E5 — Behavior System
+// ---------------------------------------------------------------------------
+
+/*
+	tick_behavior — need-driven decisions for each citizen.
+
+	Priority order (highest urgency wins):
+	  1. hunger >= 70  → .Eating      — head to Market District
+	  2. sleep  <= 30  → .Sleeping    — rest in current zone
+	  3. social <= 30  → .Socializing — drift toward nearest citizen
+	  4. health < 50   → .Working     — productive recovery behavior
+	  5. otherwise     → .Idle / .Wandering
+
+	Behavior changes update the citizen's status string and (for zone changes)
+	trigger a gradual world_pos lerp toward the target zone center.
+	Once the citizen arrives (within 1.5 units), their zone field is updated and
+	the file is re-saved so The Eye picks up the change.
+
+	Position drift:
+	  We move 0.6 units per tick toward the target. With TICK_RATE=2.0 a citizen
+	  crosses ~10 units in about 33 seconds — visible but not instant.
+*/
+tick_behavior :: proc(s: ^GameState) {
+	for i in 0..<len(s.citizens) {
+		c := &s.citizens[i]
+
+		prev_behavior := c.behavior
+
+		// --- Decide behavior based on most urgent need ---
+		if c.hunger >= 70 {
+			c.behavior = .Eating
+		} else if c.sleep <= 30 {
+			c.behavior = .Sleeping
+		} else if c.social <= 30 {
+			c.behavior = .Socializing
+		} else if c.health < 50 {
+			c.behavior = .Working
+		} else {
+			// Alternate between Idle and Wandering so they feel alive even when fine.
+			c.behavior = .Idle if int(s.tick) % 6 < 3 else .Wandering
+		}
+
+		// --- Pick a status string and target zone based on behavior ---
+		target_zone  := string(c.zone)  // default: stay in current zone
+		new_status   := behavior_status(c.behavior, string(c.zone))
+		c.status      = strings.clone_to_cstring(new_status, context.allocator)
+
+		if c.behavior == .Eating {
+			target_zone = "Market District"
+		} else if c.behavior == .Socializing {
+			target_zone = nearest_populated_zone(s, string(c.zone), i)
+		}
+
+		// --- Position drift toward target zone center ---
+		target_pos := zone_center(s, target_zone)
+		diff       := rl.Vector3{
+			target_pos.x - c.world_pos.x,
+			0,
+			target_pos.z - c.world_pos.z,
+		}
+		dist := math.sqrt(diff.x*diff.x + diff.z*diff.z)
+
+		if dist > 1.5 {
+			// Move 0.6 units per tick toward the target.
+			step := f32(0.6) / dist
+			c.world_pos.x += diff.x * step
+			c.world_pos.z += diff.z * step
+		} else if target_zone != string(c.zone) {
+			// Arrived in a new zone — update zone field.
+			c.zone = strings.clone_to_cstring(target_zone, context.allocator)
+			if prev_behavior != c.behavior {
+				push_event(s, fmt.ctprintf("%s moved to %s", c.name, c.zone), .Move)
+			}
+		}
+
+		_ = prev_behavior
+	}
+}
+
+/*
+	behavior_status — returns flavor text for a citizen's current behavior in their zone.
+
+	The 2D lookup (behavior × zone) gives the world personality.
+	Unknown combos fall back to generic text so new zones work automatically.
+*/
+@(private)
+behavior_status :: proc(b: Behavior, zone: string) -> string {
+	switch b {
+	case .Eating:
+		switch zone {
+		case "Market District":     return "Buying bread at the stalls"
+		case "The Keep":            return "Eating at the guard's table"
+		case "The Archive":         return "Chewing on rations between scrolls"
+		case "Residential Quarter": return "Cooking at home"
+		}
+		return "Searching for food"
+
+	case .Sleeping:
+		switch zone {
+		case "Residential Quarter": return "Asleep in their home"
+		case "The Keep":            return "Dozing on night watch"
+		case "Market District":     return "Slumped behind a stall"
+		case "The Archive":         return "Asleep over an open book"
+		case "The Null Quarter":    return "Collapsed in the gray"
+		}
+		return "Sleeping"
+
+	case .Socializing:
+		switch zone {
+		case "Market District":     return "Arguing with the fishmonger"
+		case "Residential Quarter": return "Chatting with a neighbor"
+		case "The Keep":            return "Gossiping with the guards"
+		case "The Archive":         return "Debating with a scholar"
+		case "The Null Quarter":    return "Talking to shadows"
+		}
+		return "Looking for company"
+
+	case .Working:
+		switch zone {
+		case "Market District":     return "Tending their stall"
+		case "Residential Quarter": return "Repairing the roof"
+		case "The Keep":            return "Sharpening weapons"
+		case "The Archive":         return "Copying manuscripts"
+		case "The Null Quarter":    return "Staring at the wall"
+		}
+		return "Working"
+
+	case .Wandering:
+		switch zone {
+		case "Market District":     return "Browsing the stalls"
+		case "Residential Quarter": return "Walking the alley"
+		case "The Keep":            return "Pacing the battlements"
+		case "The Archive":         return "Wandering the stacks"
+		case "The Null Quarter":    return "Drifting"
+		}
+		return "Wandering"
+
+	case .Idle:
+		switch zone {
+		case "Market District":     return "Standing in the crowd"
+		case "Residential Quarter": return "Sitting on the doorstep"
+		case "The Keep":            return "On guard duty"
+		case "The Archive":         return "Reading quietly"
+		case "The Null Quarter":    return "Staring into nothing"
+		}
+		return "Idle"
+	}
+	return "Idle"
+}
+
+/*
+	zone_center — returns the 3D center of a named zone.
+	Returns the origin if the zone isn't found (fallback).
+*/
+@(private)
+zone_center :: proc(s: ^GameState, zone_name: string) -> rl.Vector3 {
+	for &z in s.zones {
+		if string(z.name) == zone_name {
+			return rl.Vector3{
+				z.pos.x + z.size.x * 0.5,
+				z.pos.y,
+				z.pos.z + z.size.z * 0.5,
+			}
+		}
+	}
+	return {0, 0, 0}
+}
+
+/*
+	nearest_populated_zone — finds the zone with the most citizens (excluding
+	the caller's current zone) so socializing citizens drift toward the crowd.
+	Returns the caller's zone if no alternatives exist.
+*/
+@(private)
+nearest_populated_zone :: proc(s: ^GameState, current_zone: string, caller_idx: int) -> string {
+	best_zone  := current_zone
+	best_count := 0
+
+	for &z in s.zones {
+		zn := string(z.name)
+		if zn == current_zone { continue }
+		count := 0
+		for ci in 0..<len(s.citizens) {
+			if ci != caller_idx && string(s.citizens[ci].zone) == zn {
+				count += 1
+			}
+		}
+		if count > best_count {
+			best_count = count
+			best_zone  = zn
+		}
+	}
+	return best_zone
 }

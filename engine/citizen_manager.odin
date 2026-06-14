@@ -351,6 +351,48 @@ scan_world :: proc(world_path: string) -> [dynamic]Zone {
 }
 
 // ---------------------------------------------------------------------------
+// World config
+// ---------------------------------------------------------------------------
+
+/*
+	load_world_cfg — parses world/world.cfg and returns the tick_rate value.
+
+	The file uses the same "key = value" format as .citizen files.
+	Returns the provided default if the file is missing or the field isn't found.
+
+	Example world.cfg:
+	  world_name = Root Directory
+	  tick_rate  = 2.0
+*/
+load_world_cfg :: proc(cfg_path: string, default_tick_rate: f64) -> f64 {
+	data, err := os.read_entire_file(cfg_path, context.allocator)
+	if err != nil { return default_tick_rate }
+	defer delete(data)
+
+	tick_rate := default_tick_rate
+	text      := string(data)
+
+	for raw in strings.split_lines_iterator(&text) {
+		line := strings.trim_space(raw)
+		if line == "" || strings.has_prefix(line, "#") { continue }
+
+		sep := strings.index(line, " = ")
+		if sep < 0 { continue }
+
+		key := strings.trim_space(line[:sep])
+		val := strings.trim_space(line[sep + 3:])
+
+		if key == "tick_rate" {
+			if v, ok := strconv.parse_f64(val); ok {
+				tick_rate = v
+			}
+		}
+	}
+
+	return tick_rate
+}
+
+// ---------------------------------------------------------------------------
 // Writing
 // ---------------------------------------------------------------------------
 

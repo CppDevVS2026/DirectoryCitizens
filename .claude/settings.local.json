@@ -20,7 +20,17 @@
       "PowerShell(npx skillfish add pauljbernard/content learning-mentoring-system 2>&1)",
       "PowerShell(npx skillfish add charlesjones-dev/claude-code-plugins-dev learn 2>&1)",
       "PowerShell(npx skillfish add dvcrn/openclaw-skills-marketplace board-of-mentors 2>&1)",
-      "PowerShell(npx skillfish add sethdford/claude-skills mentoring-plan 2>&1)"
+      "PowerShell(npx skillfish add sethdford/claude-skills mentoring-plan 2>&1)",
+      "WebFetch(domain:skillsllm.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(ls \"C:\\\\Users\\\\JcTheKing\\\\.claude\\\\skills\" 2>/dev/null || echo \"Directory does not exist\")",
+      "Read(//c/Users/JcTheKing/.claude/skills/**)",
+      "Bash(ls \"C:\\\\Users\\\\JcTheKing\\\\.claude\" 2>/dev/null)",
+      "Read(//c/Users/JcTheKing/.claude/**)",
+      "Bash(mkdir -p \"C:\\\\Users\\\\JcTheKing\\\\.claude\\\\skills\\\\ccpm\")"
+    ],
+    "additionalDirectories": [
+      "C:\\Users\\JcTheKing\\.claude\\skills"
     ]
   }
 }

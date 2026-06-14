@@ -4,3 +4,6 @@ hunger = 55
 sleep  = 40
 social = 95
 status = At the tavern
+pos_x  = -8.5
+pos_y  = 0.5
+pos_z  = -5.5

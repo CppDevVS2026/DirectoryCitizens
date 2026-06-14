@@ -4,3 +4,6 @@ hunger = 30
 sleep  = 85
 social = 70
 status = Tending garden
+pos_x  = 7.5
+pos_y  = 0.5
+pos_z  = -3.5

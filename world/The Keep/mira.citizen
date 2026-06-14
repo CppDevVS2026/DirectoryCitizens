@@ -4,3 +4,6 @@ hunger = 60
 sleep  = 50
 social = 30
 status = Guarding gate
+pos_x  = 0.5
+pos_y  = 3.0
+pos_z  = 6.0

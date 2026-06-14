@@ -4,3 +4,6 @@ hunger = 80
 sleep  = 20
 social = 55
 status = Sleeping
+pos_x  = 5.5
+pos_y  = 0.5
+pos_z  = -4.5

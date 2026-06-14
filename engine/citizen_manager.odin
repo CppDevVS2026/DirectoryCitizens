@@ -366,13 +366,19 @@ scan_world :: proc(world_path: string) -> [dynamic]Zone {
 	  world_name = Root Directory
 	  tick_rate  = 2.0
 */
-load_world_cfg :: proc(cfg_path: string, default_tick_rate: f64) -> f64 {
+WorldCfg :: struct {
+	tick_rate:  f64,
+	world_name: cstring,
+}
+
+load_world_cfg :: proc(cfg_path: string, default_tick_rate: f64) -> WorldCfg {
+	cfg := WorldCfg{tick_rate = default_tick_rate, world_name = "Root Directory"}
+
 	data, err := os.read_entire_file(cfg_path, context.allocator)
-	if err != nil { return default_tick_rate }
+	if err != nil { return cfg }
 	defer delete(data)
 
-	tick_rate := default_tick_rate
-	text      := string(data)
+	text := string(data)
 
 	for raw in strings.split_lines_iterator(&text) {
 		line := strings.trim_space(raw)
@@ -384,14 +390,15 @@ load_world_cfg :: proc(cfg_path: string, default_tick_rate: f64) -> f64 {
 		key := strings.trim_space(line[:sep])
 		val := strings.trim_space(line[sep + 3:])
 
-		if key == "tick_rate" {
-			if v, ok := strconv.parse_f64(val); ok {
-				tick_rate = v
-			}
+		switch key {
+		case "tick_rate":
+			if v, ok := strconv.parse_f64(val); ok { cfg.tick_rate = v }
+		case "world_name":
+			cfg.world_name = strings.clone_to_cstring(val, context.allocator)
 		}
 	}
 
-	return tick_rate
+	return cfg
 }
 
 // ---------------------------------------------------------------------------

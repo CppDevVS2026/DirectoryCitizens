@@ -81,10 +81,13 @@ Draw_Hud :: proc(s: ^eng.GameState) {
 	rl.DrawRectangle(px + 2, 0, pw - 2, hdr_h, COL_HEADER)
 	rl.DrawRectangle(px + 2, hdr_h - 1, pw - 2, 1, COL_BORDER)
 
-	// Title
-	title := cstring("DIRECTORY CITIZENS")
-	tw    := rl.MeasureText(title, 16)
-	rl.DrawText(title, px + (pw - tw) / 2, 10, 16, COL_ACCENT)
+	// Title — world name from config
+	wname  := s.world_name if s.world_name != nil else "ROOT DIRECTORY"
+	tw     := rl.MeasureText(wname, 14)
+	rl.DrawText(wname, px + (pw - tw) / 2, 6, 14, COL_ACCENT)
+	sub    := cstring("DIRECTORY CITIZENS")
+	sw2    := rl.MeasureText(sub, 9)
+	rl.DrawText(sub, px + (pw - sw2) / 2, 22, 9, COL_DIM)
 
 	// Eye status row
 	blink_on := (i32(s.tick) % 2) == 0 && !s.paused
@@ -314,8 +317,11 @@ Draw_Hud :: proc(s: ^eng.GameState) {
 			rl.DrawCircleLines(px + 26, dy + 10, pulse_r, rl.Color{COL_DANGER.r, COL_DANGER.g, COL_DANGER.b, 100})
 		}
 
-		rl.DrawText(c.name, px + 46, dy,      15, COL_TEXT)
-		rl.DrawText(c.zone, px + 46, dy + 19, 10, COL_DIM)
+		rl.DrawText(c.name,   px + 46, dy,      15, COL_TEXT)
+		rl.DrawText(c.zone,   px + 46, dy + 19, 10, COL_DIM)
+		if c.status != nil {
+			rl.DrawText(c.status, px + 46, dy + 33, 10, COL_TEXT_DIM)
+		}
 
 		// Behavior badge
 		blabel := behavior_label(c.behavior)
@@ -329,19 +335,18 @@ Draw_Hud :: proc(s: ^eng.GameState) {
 		// Stress ticks indicator
 		if c.stress_ticks > 0 {
 			stress_label := fmt.ctprintf("stress ×%.0f", c.stress_ticks)
-			rl.DrawText(stress_label, px + 46, dy + 33, 9, COL_DANGER)
-			// Dot chain
+			rl.DrawText(stress_label, px + 46, dy + 47, 9, COL_DANGER)
 			for ti := i32(0); ti < i32(min(c.stress_ticks, 5)); ti += 1 {
 				dot_col2 := COL_DANGER if ti < 3 else rl.Color{255, 30, 30, 255}
-				rl.DrawCircle(px + 46 + 86 + ti * 10, dy + 37, 3, dot_col2)
+				rl.DrawCircle(px + 46 + 86 + ti * 10, dy + 51, 3, dot_col2)
 			}
 		}
 
-		stat_top := dy + 50
+		stat_top := dy + 64
 		draw_stat_bar_ex(px + 10, stat_top,       pw - 20, "Health", c.health, {65,  210,  90, 255}, 20,  false)
-		draw_stat_bar_ex(px + 10, stat_top + 36,  pw - 20, "Hunger", c.hunger, {225, 145,  35, 255}, 80,  true)
-		draw_stat_bar_ex(px + 10, stat_top + 72,  pw - 20, "Sleep",  c.sleep,  { 90, 155, 255, 255}, 20,  false)
-		draw_stat_bar_ex(px + 10, stat_top + 108, pw - 20, "Social", c.social, {200,  95, 255, 255}, 20,  false)
+		draw_stat_bar_ex(px + 10, stat_top + 34,  pw - 20, "Hunger", c.hunger, {225, 145,  35, 255}, 80,  true)
+		draw_stat_bar_ex(px + 10, stat_top + 68,  pw - 20, "Sleep",  c.sleep,  { 90, 155, 255, 255}, 20,  false)
+		draw_stat_bar_ex(px + 10, stat_top + 102, pw - 20, "Social", c.social, {200,  95, 255, 255}, 20,  false)
 	} else {
 		msg := cstring("— select a citizen —")
 		mw  := rl.MeasureText(msg, 12)

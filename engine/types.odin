@@ -67,6 +67,7 @@ GameState :: struct {
 	selected:       i32,
 	citizen_scroll: i32,
 	tick:           f64,
+	world_name:     cstring,    // from world.cfg world_name field
 	paused:         bool,
 	speed:          f32,        // 1.0 = normal, 2.0 = fast, 4.0 = fastest
 	follow_sel:     bool,       // camera tracks selected citizen when true
@@ -87,8 +88,10 @@ make_game_state :: proc() -> GameState {
 		projection = .PERSPECTIVE,
 	}
 
-	s.tick_rate = load_world_cfg("world/world.cfg", TICK_RATE)
-	s.speed     = 1.0
+	cfg         := load_world_cfg("world/world.cfg", TICK_RATE)
+	s.tick_rate  = cfg.tick_rate
+	s.world_name = cfg.world_name
+	s.speed      = 1.0
 
 	s.zones = scan_world("world")
 	for &z in s.zones {

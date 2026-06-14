@@ -17,6 +17,7 @@ main :: proc() {
 	state := eng.make_game_state()
 	eng.init_audio(&state.audio)
 	defer eng.destroy_game_state(&state)
+	rl.SetWindowTitle(state.world_name)
 
 	for !rl.WindowShouldClose() {
 		defer free_all(context.temp_allocator)
@@ -65,6 +66,13 @@ update :: proc(s: ^eng.GameState, dt: f64) {
 	if rl.IsKeyPressed(.ESCAPE) {
 		s.selected   = -1
 		s.follow_sel = false
+	}
+
+	// R = reset camera to default position
+	if rl.IsKeyPressed(.R) {
+		s.camera.position = {12, 8, 12}
+		s.camera.target   = {0, 0.5, 0}
+		s.follow_sel      = false
 	}
 
 	// F = toggle camera follow on selected citizen

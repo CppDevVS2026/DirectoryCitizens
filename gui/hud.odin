@@ -73,19 +73,26 @@ season_color :: proc(s: eng.Season) -> rl.Color {
 }
 
 // ---------------------------------------------------------------------------
-// Main draw proc
+// Global layout
 // ---------------------------------------------------------------------------
 
+gui_layout: Gui_Layout
+
 Draw_Hud :: proc(s: ^eng.GameState) {
-	for _, &win in s.layout.windows {
+    if gui_layout.windows[.Time].rect.width == 0 {
+        gui_layout = init_gui_layout()
+    }
+
+	for id in Window_ID {
+        win := &gui_layout.windows[id]
 		if !win.visible do continue
-		draw_window_frame(win)
+		draw_window_frame(win^)
 		switch win.id {
-		case .Time:        draw_window_time(s, win)
-		case .Directories: draw_window_directories(s, win)
-		case .Citizens:    draw_window_citizens(s, win)
-		case .Info:        draw_window_info(s, win)
-		case .Events:      draw_window_events(s, win)
+		case .Time:        draw_window_time(s, win^)
+		case .Directories: draw_window_directories(s, win^)
+		case .Citizens:    draw_window_citizens(s, win^)
+		case .Info:        draw_window_info(s, win^)
+		case .Events:      draw_window_events(s, win^)
 		}
 	}
     

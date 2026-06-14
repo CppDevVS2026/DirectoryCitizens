@@ -32,7 +32,7 @@ main :: proc() {
 		rl.BeginDrawing()
 		rl.ClearBackground(gui.sky_color(game_tick))
 		gui.Draw_World(&state)
-		gui.Draw_Night_Overlay(game_tick, gui.SCREEN_W, gui.SCREEN_H)
+		gui.Draw_Night_Overlay(i32(game_tick), gui.SCREEN_W, gui.SCREEN_H)
 		gui.Draw_Hud(&state)
 		rl.EndDrawing()
 	}

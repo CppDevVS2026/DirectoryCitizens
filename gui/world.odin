@@ -63,20 +63,6 @@ Draw_World :: proc(s: ^eng.GameState) {
 	rl.DrawText(hint, 10, SCREEN_H - 16, 9, {65, 82, 105, 200})
 }
 
-// Draw_Night_Overlay — darkens the 3D viewport post-EndMode3D based on time.
-// This is a 2D rectangle pass so it tints ALL rendered 3D geometry consistently.
-Draw_Night_Overlay :: proc(game_tick: int, vp_w: i32, vp_h: i32) {
-	hour    := game_tick % 24
-	alpha   := f32(0)
-	switch {
-	case hour < 5:  alpha = 0.3
-	case hour < 6:  alpha = 0.3 - f32(hour - 5) * 0.15
-	case hour < 7:  alpha = 0.15 - f32(hour - 6) * 0.15
-	case hour < 18: alpha = 0
-	case hour < 19: alpha = f32(hour - 18) * 0.1
-	case hour < 21: alpha = 0.1 + f32(hour - 19) * 0.1
-	case:           alpha = 0.3
-	}
 // ---------------------------------------------------------------------------
 // Ground
 // ---------------------------------------------------------------------------
@@ -731,3 +717,4 @@ behavior_dot_color :: proc(b: eng.Behavior) -> rl.Color {
 	}
 	return {55, 65, 82, 255}
 }
+

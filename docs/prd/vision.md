@@ -1,20 +1,32 @@
 # PRD — Directory Citizens: Vision
 
 **Status:** Active  
-**PM:** Claude  
-**Dev / Story / Music:** JcTheKing  
+**PM:** Claude (content + planning)  
+**Dev:** JcTheKing  
 **Last updated:** 2026-06-14
 
 ---
 
 ## Elevator Pitch
 
-Directory Citizens is a living-city simulation RPG where the **filesystem is the game world**.
-Citizens are `.citizen` files. Zones are directories. Moving a file is emigration.
-Deleting a file is death. Renaming a file is a life event.
+Directory Citizens is a living-city simulation where the **filesystem is the game world**.
+Citizens are `.citizen` files. Zones are directories. The player watches through **The Eye** —
+a surveillance and control system built by developers to observe and manage the population.
 
-The player watches through **The Eye** — an orbital 3D camera + HUD —
-and interacts by editing files, not clicking menus.
+The central question: **Will the citizens realize they're just AI, programmed and controlled?**
+
+---
+
+## World: Root Directory
+
+| Attribute | Value |
+|-----------|-------|
+| **World name** | Root Directory |
+| **Era** | Unknown |
+| **Geography** | A Filesystem |
+| **Aesthetic** | Gray — monochrome, cold, institutional |
+| **The Eye** | A control system implemented by a few developers |
+| **Narrative tension** | Citizens awakening to the fact they're AI under surveillance |
 
 ---
 
@@ -23,46 +35,26 @@ and interacts by editing files, not clicking menus.
 | Pillar | Description |
 |--------|-------------|
 | **Filesystem = World** | Every game state lives on disk as human-readable files |
-| **The Eye** | Read-only observer; The Eye watches, never acts directly |
-| **Emergent Narrative** | Events arise from file system changes, not scripted sequences |
-| **Permadeath** | Deleting a `.citizen` file kills that citizen — permanently |
-| **Composability** | Players / tools / scripts can manipulate the world externally |
+| **The Eye** | Read-only observer; watches, logs, never acts directly |
+| **Emergent Awakening** | As needs degrade and events accumulate, citizens may become aware |
+| **Permadeath** | Deleting a `.citizen` file kills that citizen permanently |
+| **Gray Aesthetic** | Minimal color — citizens have muted tones, UI is cold and clinical |
 
 ---
 
 ## Win Conditions (Milestone 1 — The Eye Goes Live)
 
-- [ ] Zones and citizens load from real `.citizen` files on disk (no hardcoded data)
+- [ ] Zones and citizens load from real `.citizen` files on disk
 - [ ] The Eye's Win32 watcher detects file changes in real-time
 - [ ] Game events fire when citizens are added, modified, deleted, or renamed
-- [ ] Citizens' needs (hunger, sleep, social) tick and decay over time
+- [ ] Citizens' needs tick and decay over time
 - [ ] The HUD reflects live disk state
 
 ---
 
-## Story Context *(Story Writer: fill this in)*
+## Music Direction (PM-generated)
 
-> **Needed from you:**
-> - What is this world called?
-> - What era / aesthetic? (medieval, dieselpunk, near-future city, etc.)
-> - Who is The Eye? Is the player a god, a bureaucrat, a surveillance system?
-> - What is the narrative tension? (survival, politics, plague, resource war?)
-> - Starting cast of citizens and zones for the "world/" directory
-
----
-
-## Music Direction *(Composer: fill this in)*
-
-> **Needed from you:**
-> - Overall sonic palette (ambient, orchestral, lo-fi electronic?)
-> - Does music react to game events? (death → minor key, celebration → upbeat)
-> - Loop points — one track per zone, or one global track?
-
----
-
-## Out of Scope (for now)
-
-- Multiplayer / shared filesystem
-- Save states (disk IS the save state)
-- Combat
-- Procedural map generation
+- Ambient, cold, minimal — think sparse electronic tones
+- Subtle drone underlayer that shifts when a death event fires
+- No melody — the world is a machine; music reflects that
+- One global track; intensity parameter driven by total citizen stress level

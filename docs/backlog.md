@@ -10,14 +10,12 @@
 
 Milestone goal: Citizens live on disk, The Eye watches, needs tick in real-time.
 
-### NOW — Unblocked, start here
+### NOW — Unblocked, start here (your coding tasks)
 
-| Task | Epic | Owner | Notes |
-|------|------|-------|-------|
-| T4.1 — World name + lore doc | E4 | Story Writer | Unblocks everything narrative |
-| T4.2 — Zone definitions | E4 | Story Writer | Need names before T1.2 |
-| T4.3 — Starting citizens | E4 | Story Writer | Need `.citizen` content before T1.1 |
-| T1.1 — Create world/ directory + .citizen files | E1 | Dev + Story | Story writer provides content; dev creates files |
+| Task | Epic | File | Notes |
+|------|------|------|-------|
+| T1.4 — Implement `save_citizen()` | E1 | `engine/citizen_manager.odin` | **Done by PM** — verify round-trip |
+| T3.1 — Uncomment `tick_needs()` | E3 | `engine/simulation.odin` | Hunger/sleep/social decay |
 
 ### NEXT — After T1.1 complete
 
@@ -67,4 +65,13 @@ Milestone goal: Citizens live on disk, The Eye watches, needs tick in real-time.
 
 ## Completed
 
-*(nothing yet — first sprint just kicked off)*
+- [x] T4.1 — World lore doc (`docs/lore/world.md`) — *Story Writer*
+- [x] T4.2 — Zone definitions — 5 zones created: Market District, Residential Quarter, The Keep, The Archive, The Null Quarter
+- [x] T4.3 — Starting citizens — 11 citizens written to disk
+- [x] T4.5 — `world/world.cfg` — tick_rate=2.0, world_name=Root Directory
+- [x] T1.1 — `world/` directory structure + `.citizen` files created on disk — *PM*
+- [x] T1.2 — `scan_world()` implemented — *Dev*
+- [x] T1.3 — Wired into `make_game_state()`, hardcoded data removed — *Dev*
+- [x] T1.4 — `save_citizen()` implemented — *PM*
+- [x] T1.5 — Zone color palette (name hash → ZONE_PALETTE) — *PM*
+- [x] T1.6 — Citizen color from name hash — *PM*

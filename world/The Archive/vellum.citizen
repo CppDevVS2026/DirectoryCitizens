@@ -1,0 +1,9 @@
+name   = Vellum
+status = Cataloguing events that never happened
+health = 60
+hunger = 65
+sleep  = 45
+social = 10
+pos_x  = 12.0
+pos_y  = 0.5
+pos_z  = 2.0

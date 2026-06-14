@@ -1,0 +1,9 @@
+name   = Null
+status = Existing
+health = 1
+hunger = 99
+sleep  = 1
+social = 0
+pos_x  = -14.0
+pos_y  = 0.5
+pos_z  = 12.0

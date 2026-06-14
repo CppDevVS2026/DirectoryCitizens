@@ -1,9 +1,9 @@
 name   = Mira
-health = 78
-hunger = 60
-sleep  = 50
-social = 30
-status = Guarding gate
+status = Guarding a door no one tries to open
+health = 88
+hunger = 35
+sleep  = 75
+social = 15
 pos_x  = 0.5
 pos_y  = 3.0
 pos_z  = 6.0

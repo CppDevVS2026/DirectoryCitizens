@@ -1,9 +1,9 @@
 name   = Aldric
+status = Arguing with the fishmonger
 health = 85
 hunger = 40
 sleep  = 70
 social = 60
-status = Trading goods
 pos_x  = -7.5
 pos_y  = 0.5
 pos_z  = -7.5

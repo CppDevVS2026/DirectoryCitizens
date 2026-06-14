@@ -81,8 +81,10 @@ scan_zone :: proc(dir_path: string, zone_name: string) -> [dynamic]Citizen {
 
 		full_path, _ := filepath.join(dir_path, info.name)
 		defer delete(full_path)
-		
-		
+
+		if c, ok := load_citizen(full_path, zone_name); ok {
+			append(&result, c)
+		}
 		
 	}
 

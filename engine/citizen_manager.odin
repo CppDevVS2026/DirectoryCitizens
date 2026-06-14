@@ -323,7 +323,7 @@ scan_world :: proc(world_path: string) -> [dynamic]Zone {
 
 	fallback := 0 // counter for zones not in the layout table
 	for info in infos {
-		if !info.is_dir {continue} // skip files like world.cfg
+		if os.is_dir(info.fullpath) {continue} // skip files like world.cfg
 
 		name      := info.name
 		path, _   := filepath.join({world_path, name})
@@ -390,5 +390,8 @@ save_citizen :: proc(c: Citizen, file_path: string) -> bool {
 	fmt.sbprintf(&b, "pos_z  = %.2f\n", c.world_pos.z)
 
 	text := strings.to_string(b)
+	// transmute([]u8) reinterprets the string as a byte slice — no copy, just
+	// tells the compiler "same memory, different type". Required because
+	// os.write_entire_file expects []u8, not string.
 	return os.write_entire_file(file_path, transmute([]u8)text)
 }

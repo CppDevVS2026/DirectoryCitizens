@@ -120,6 +120,25 @@ tick_needs :: proc(s: ^GameState) {
 }
 
 /*
+	smooth_citizens — moves world_pos toward target_pos at a fixed speed each frame.
+	Call this every frame (not on the tick) for buttery smooth movement.
+	Speed ~1.0 units/sec feels like a brisk walk.
+*/
+smooth_citizens :: proc(s: ^GameState, dt: f64) {
+	speed := f32(1.2)  // units per second
+	for &c in s.citizens {
+		dx := c.target_pos.x - c.world_pos.x
+		dz := c.target_pos.z - c.world_pos.z
+		dist := math.sqrt(dx*dx + dz*dz)
+		if dist < 0.005 { continue }
+		step := min(speed * f32(dt), dist)
+		inv  := step / dist
+		c.world_pos.x += dx * inv
+		c.world_pos.z += dz * inv
+	}
+}
+
+/*
 	push_event — inserts a new entry at the top of the event log.
 
 	Keeps the log capped at 20 entries by dropping the oldest.
@@ -187,22 +206,27 @@ tick_behavior :: proc(s: ^GameState) {
 			target_zone = nearest_populated_zone(s, string(c.zone), i)
 		}
 
-		// --- Position drift toward target zone center ---
-		target_pos := zone_center(s, target_zone)
-		diff       := rl.Vector3{
-			target_pos.x - c.world_pos.x,
-			0,
-			target_pos.z - c.world_pos.z,
+		// --- Compute destination for this tick ---
+		// For wandering/idle, add a small deterministic offset so citizens
+		// mill around their zone rather than all stacking at the center.
+		zone_tgt := zone_center(s, target_zone)
+		wander_seed := f64(i) * 2.3 + f64(int(s.tick / 8.0)) * 1.7
+		wander_r    := f32(1.6)
+		dest := zone_tgt
+		if c.behavior == .Wandering || c.behavior == .Idle {
+			dest.x += math.sin_f32(f32(wander_seed))       * wander_r
+			dest.z += math.cos_f32(f32(wander_seed * 1.3)) * wander_r
+		} else if c.behavior == .Socializing {
+			// Nudge slightly off-center so socializing citizens cluster visibly
+			dest.x += math.sin_f32(f32(i) * 1.1) * 0.6
+			dest.z += math.cos_f32(f32(i) * 0.9) * 0.6
 		}
-		dist := math.sqrt(diff.x*diff.x + diff.z*diff.z)
+		c.target_pos = dest
 
-		if dist > 1.5 {
-			// Move 0.6 units per tick toward the target.
-			step := f32(0.6) / dist
-			c.world_pos.x += diff.x * step
-			c.world_pos.z += diff.z * step
-		} else if target_zone != string(c.zone) {
-			// Arrived in a new zone — update zone field.
+		// --- Zone arrival check ---
+		diff := rl.Vector3{dest.x - c.world_pos.x, 0, dest.z - c.world_pos.z}
+		dist := math.sqrt(diff.x*diff.x + diff.z*diff.z)
+		if dist < 1.5 && target_zone != string(c.zone) {
 			c.zone = strings.clone_to_cstring(target_zone, context.allocator)
 			if prev_behavior != c.behavior {
 				push_event(s, fmt.ctprintf("%s moved to %s", c.name, c.zone), .Move)

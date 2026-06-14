@@ -24,7 +24,8 @@ Citizen :: struct {
 	stress_ticks: f32,
 	behavior:     Behavior,     // current activity (runtime-only, not saved to disk)
 	color:        rl.Color,
-	world_pos:    rl.Vector3,
+	world_pos:    rl.Vector3,   // current rendered position (lerped toward target_pos each frame)
+	target_pos:   rl.Vector3,   // destination set by behavior system each tick
 }
 
 Zone :: struct {

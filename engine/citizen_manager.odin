@@ -238,9 +238,10 @@ load_citizen :: proc(file_path: string, zone_name: string) -> (Citizen, bool) {
 		}
 	}
 
-	c.zone  = strings.clone_to_cstring(zone_name, context.allocator)
-	c.path  = strings.clone_to_cstring(file_path, context.allocator)
-	c.color = citizen_color(string(c.name) if c.name != nil else "")
+	c.zone       = strings.clone_to_cstring(zone_name, context.allocator)
+	c.path       = strings.clone_to_cstring(file_path, context.allocator)
+	c.color      = citizen_color(string(c.name) if c.name != nil else "")
+	c.target_pos = c.world_pos  // match on load so there's no initial snap
 
 	// A citizen with no name is malformed — reject it
 	if c.name == nil {return {}, false}

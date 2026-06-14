@@ -20,10 +20,14 @@ main :: proc() {
 	for !rl.WindowShouldClose() {
 		defer free_all(context.temp_allocator)
 
-		update(&state, f64(rl.GetFrameTime()))
+		dt := f64(rl.GetFrameTime())
+		update(&state, dt)
+		eng.smooth_citizens(&state, dt)
+
+		game_tick := int(state.tick / state.tick_rate) if state.tick_rate > 0 else 0
 
 		rl.BeginDrawing()
-		rl.ClearBackground({8, 10, 14, 255})
+		rl.ClearBackground(gui.sky_color(game_tick))
 		gui.Draw_World(&state)
 		gui.Draw_Hud(&state)
 		rl.EndDrawing()

@@ -58,7 +58,7 @@ make_game_state :: proc() -> GameState {
 		projection = .PERSPECTIVE,
 	}
 
-	s.zones = scan_world("world")
+	s.zones = scan_world("./world")
 	for &z in s.zones {
 		citizens := scan_zone(string(z.path), string(z.name))
 		for c in citizens { append(&s.citizens, c) }

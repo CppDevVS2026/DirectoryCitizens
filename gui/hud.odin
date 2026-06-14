@@ -77,7 +77,7 @@ Draw_Hud :: proc(s: ^eng.GameState) {
 	// ==========================================================================
 	// HEADER
 	// ==========================================================================
-	hdr_h := i32(92)
+	hdr_h := i32(122)
 	rl.DrawRectangle(px + 2, 0, pw - 2, hdr_h, COL_HEADER)
 	rl.DrawRectangle(px + 2, hdr_h - 1, pw - 2, 1, COL_BORDER)
 
@@ -86,11 +86,15 @@ Draw_Hud :: proc(s: ^eng.GameState) {
 	tw    := rl.MeasureText(title, 16)
 	rl.DrawText(title, px + (pw - tw) / 2, 10, 16, COL_ACCENT)
 
-	// Subtitle — eye status row
+	// Eye status row
 	blink_on := (i32(s.tick) % 2) == 0
 	dot_col  := COL_OK if blink_on else COL_DIM
 	rl.DrawCircle(px + 18, 36, 4, dot_col)
-	eye_str := fmt.ctprintf("THE EYE  ·  %d citizens  ·  tick %.0f", len(s.citizens), s.tick)
+	// World time: each simulation tick = 1 in-game hour
+	sim_tick  := int(s.tick / s.tick_rate)
+	world_day := sim_tick / 24 + 1
+	world_hr  := sim_tick % 24
+	eye_str   := fmt.ctprintf("THE EYE  ·  %d pop  ·  Day %d  %02d:00", len(s.citizens), world_day, world_hr)
 	rl.DrawText(eye_str, px + 28, 30, 10, COL_DIM)
 
 	// Unrest bar
@@ -133,6 +137,45 @@ Draw_Hud :: proc(s: ^eng.GameState) {
 	if s.unrest >= 90 {
 		pulse := u8(140 + i32(math.sin_f64(s.tick * 6) * 80))
 		rl.DrawText("REVOLT IMMINENT", px + 8, unrest_y + 16, 9, rl.Color{COL_DANGER.r, COL_DANGER.g, COL_DANGER.b, pulse})
+	}
+
+	// Zone overview strip — one chip per zone showing pop + stress
+	zone_strip_y := i32(94)
+	rl.DrawRectangle(px + 2, zone_strip_y, pw - 2, 27, {10, 13, 20, 255})
+	rl.DrawRectangle(px + 2, zone_strip_y, pw - 2, 1, COL_BORDER)
+
+	if len(s.zones) > 0 {
+		chip_w := (pw - 4) / i32(len(s.zones))
+		for zi in 0..<len(s.zones) {
+			z   := &s.zones[zi]
+			cx  := px + 2 + i32(zi) * chip_w
+			// Count pop + stress for this zone
+			pop, stressed := 0, 0
+			for &c in s.citizens {
+				if c.zone == z.name {
+					pop += 1
+					if c.hunger >= 80 || c.sleep <= 20 { stressed += 1 }
+				}
+			}
+			// Chip background
+			chip_bg := rl.Color{z.color.r / 8, z.color.g / 8, z.color.b / 8, 255}
+			rl.DrawRectangle(cx, zone_strip_y + 1, chip_w - 1, 25, chip_bg)
+
+			// Zone name — first word only to fit
+			name_str := z.name
+			rl.DrawText(name_str, cx + 4, zone_strip_y + 4, 8, z.color)
+
+			// Pop + stress fraction
+			stat_str := fmt.ctprintf("%d♟", pop)
+			if stressed > 0 { stat_str = fmt.ctprintf("%d♟ %d!", pop, stressed) }
+			stat_col := COL_DANGER if stressed > 0 else COL_DIM
+			rl.DrawText(stat_str, cx + 4, zone_strip_y + 15, 8, stat_col)
+
+			// Divider
+			if zi < len(s.zones) - 1 {
+				rl.DrawRectangle(cx + chip_w - 1, zone_strip_y + 2, 1, 23, COL_BORDER)
+			}
+		}
 	}
 
 	y = hdr_h + 8

@@ -67,10 +67,10 @@ make_game_state :: proc() -> GameState {
 	s.selected = -1
 
 	s.camera = rl.Camera3D{
-		position   = {18, 14, 18},
-		target     = {0, 1, 0},
+		position   = {12, 8, 12},
+		target     = {0, 0.5, 0},
 		up         = {0, 1, 0},
-		fovy       = 45,
+		fovy       = 50,
 		projection = .PERSPECTIVE,
 	}
 

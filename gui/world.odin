@@ -80,7 +80,17 @@ Draw_World :: proc(s: ^eng.GameState) {
 
 	rl.DrawRectangle(PANEL_X - 1, 0, 1, SCREEN_H, COL_BORDER)
 	rl.DrawRectangle(0, SCREEN_H - 22, PANEL_X, 22, {0, 0, 0, 130})
-	rl.DrawText("[Drag] orbit  [Scroll] zoom  [Click] select", 10, SCREEN_H - 16, 10, {65, 82, 105, 200})
+
+	speed_str := cstring("")
+	if s.paused {
+		speed_str = "  [PAUSED]"
+	} else if s.speed >= 4 {
+		speed_str = "  [×4]"
+	} else if s.speed >= 2 {
+		speed_str = "  [×2]"
+	}
+	hint := fmt.ctprintf("[Drag] orbit  [Scroll] zoom  [Click] select  [Space] pause  [1/2/3] speed%s", speed_str)
+	rl.DrawText(hint, 10, SCREEN_H - 16, 9, {65, 82, 105, 200})
 }
 
 // ---------------------------------------------------------------------------

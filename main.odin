@@ -35,7 +35,13 @@ main :: proc() {
 }
 
 update :: proc(s: ^eng.GameState, dt: f64) {
-	s.tick += dt
+	if !s.paused { s.tick += dt * f64(s.speed) }
+
+	// Speed controls: Space=pause, 1=normal, 2=fast, 3=fastest
+	if rl.IsKeyPressed(.SPACE) { s.paused = !s.paused }
+	if rl.IsKeyPressed(.ONE)   { s.speed = 1.0; s.paused = false }
+	if rl.IsKeyPressed(.TWO)   { s.speed = 2.0; s.paused = false }
+	if rl.IsKeyPressed(.THREE) { s.speed = 4.0; s.paused = false }
 
 	eng.drain_eye_events(&s.eye, s)
 	eng.tick_simulation(s, dt)

@@ -31,7 +31,12 @@
       "Bash(gh repo *)",
       "WebFetch(domain:github.com)",
       "Bash(gh auth *)",
-      "Bash(mkdir -p \"c:/Users/JcTheKing/Projects/Yokim/Games/FilesRPG/DirectoryCitizens/docs/prd\" \"c:/Users/JcTheKing/Projects/Yokim/Games/FilesRPG/DirectoryCitizens/docs/epics\")"
+      "Bash(mkdir -p \"c:/Users/JcTheKing/Projects/Yokim/Games/FilesRPG/DirectoryCitizens/docs/prd\" \"c:/Users/JcTheKing/Projects/Yokim/Games/FilesRPG/DirectoryCitizens/docs/epics\")",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(ls \"world/Market District/\")",
+      "Bash(ls \"world/Residential Quarter/\")",
+      "Bash(ls \"world/The Keep/\")"
     ],
     "additionalDirectories": [
       "C:\\Users\\JcTheKing\\.claude\\skills",

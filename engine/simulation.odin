@@ -30,13 +30,15 @@ TICK_RATE :: 2.0
 accumulator: f64
 
 tick_simulation :: proc(s: ^GameState, dt: f64) {
-	accumulator += dt
+	if s.paused { return }
+	accumulator += dt * f64(s.speed)
 	if accumulator < s.tick_rate {return}
 	accumulator -= s.tick_rate
 
 	tick_needs(s)
 	tick_behavior(s)
 	tick_politics(s)
+	tick_renewal(s)
 }
 
 /*
@@ -462,4 +464,99 @@ exile_most_stressed :: proc(s: ^GameState) {
 	if rename_err == nil {
 		push_event(s, fmt.ctprintf("%s was dragged to The Jail", c.name), .Move)
 	}
+}
+
+// ---------------------------------------------------------------------------
+// Population renewal — prevents permanent empty-world death spiral
+// ---------------------------------------------------------------------------
+
+// Arrival names cycling through so the world has persistent named characters.
+@(private)
+ARRIVAL_NAMES := [16]string{
+	"Wren", "Osric", "Faye", "Brom", "Cass", "Dex", "Ilen", "Rowan",
+	"Tove", "Emric", "Hala", "Syon", "Nara", "Vryn", "Coda", "Ashel",
+}
+
+@(private)
+renewal_tick: int
+
+/*
+	tick_renewal — when a zone falls to 0 citizens, a newcomer arrives after
+	a short delay. Each zone can hold at most 4 citizens naturally; once the
+	world total drops below 3, an emergency arrival fires immediately.
+*/
+tick_renewal :: proc(s: ^GameState) {
+	renewal_tick += 1
+
+	total := len(s.citizens)
+
+	// Emergency: world is almost empty — spawn someone anywhere
+	if total == 0 {
+		spawn_arrival(s, "Market District")
+		return
+	}
+	if total < 3 && renewal_tick % 4 == 0 {
+		spawn_arrival(s, "Residential Quarter")
+		return
+	}
+
+	// Zone renewal: every ~30 ticks, repopulate an empty non-Jail zone
+	if renewal_tick % 30 != 0 { return }
+	for &z in s.zones {
+		if string(z.name) == "The Jail" { continue }
+		pop := 0
+		for &c in s.citizens {
+			if c.zone == z.name { pop += 1 }
+		}
+		if pop == 0 {
+			spawn_arrival(s, string(z.name))
+			return  // one arrival per renewal tick
+		}
+	}
+}
+
+@(private)
+spawn_arrival :: proc(s: ^GameState, zone_name: string) {
+	// Find the zone
+	zone_pos, zone_size := rl.Vector3{}, rl.Vector3{6, 2, 6}
+	for &z in s.zones {
+		if string(z.name) == zone_name {
+			zone_pos  = z.pos
+			zone_size = z.size
+			break
+		}
+	}
+
+	// Pick a name not already in use
+	name := ""
+	for n in ARRIVAL_NAMES {
+		used := false
+		for &c in s.citizens {
+			if strings.to_lower(string(c.name), context.temp_allocator) == strings.to_lower(n, context.temp_allocator) {
+				used = true; break
+			}
+		}
+		if !used { name = n; break }
+	}
+	if name == "" { name = "Stranger" }
+
+	cx := zone_pos.x + zone_size.x * 0.5
+	cz := zone_pos.z + zone_size.z * 0.5
+
+	// Write the .citizen file to disk — The Eye will pick it up and fire Spawn
+	file_name := fmt.tprintf("world/%s/%s.citizen", zone_name, strings.to_lower(name, context.temp_allocator))
+	b: strings.Builder
+	strings.builder_init(&b, context.temp_allocator)
+	fmt.sbprintf(&b, "name   = %s\n", name)
+	fmt.sbprintf(&b, "status = Arrived in %s\n", zone_name)
+	fmt.sbprintf(&b, "health = 80\n")
+	fmt.sbprintf(&b, "hunger = 20\n")
+	fmt.sbprintf(&b, "sleep  = 70\n")
+	fmt.sbprintf(&b, "social = 60\n")
+	fmt.sbprintf(&b, "pos_x  = %.2f\n", cx)
+	fmt.sbprintf(&b, "pos_y  = 0.00\n")
+	fmt.sbprintf(&b, "pos_z  = %.2f\n", cz)
+	text := strings.to_string(b)
+	_ = os.write_entire_file(file_name, transmute([]u8)text)
+	// The Eye's Spawn event will handle adding them to s.citizens
 }

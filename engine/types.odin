@@ -62,6 +62,8 @@ GameState :: struct {
 	selected:       i32,
 	citizen_scroll: i32,
 	tick:           f64,
+	paused:         bool,
+	speed:          f32,   // 1.0 = normal, 2.0 = fast, 0.5 = slow
 }
 
 make_game_state :: proc() -> GameState {
@@ -77,6 +79,7 @@ make_game_state :: proc() -> GameState {
 	}
 
 	s.tick_rate = load_world_cfg("world/world.cfg", TICK_RATE)
+	s.speed     = 1.0
 
 	s.zones = scan_world("world")
 	for &z in s.zones {

@@ -87,14 +87,17 @@ Draw_Hud :: proc(s: ^eng.GameState) {
 	rl.DrawText(title, px + (pw - tw) / 2, 10, 16, COL_ACCENT)
 
 	// Eye status row
-	blink_on := (i32(s.tick) % 2) == 0
+	blink_on := (i32(s.tick) % 2) == 0 && !s.paused
 	dot_col  := COL_OK if blink_on else COL_DIM
 	rl.DrawCircle(px + 18, 36, 4, dot_col)
-	// World time: each simulation tick = 1 in-game hour
-	sim_tick  := int(s.tick / s.tick_rate)
+	sim_tick  := int(s.tick / s.tick_rate) if s.tick_rate > 0 else 0
 	world_day := sim_tick / 24 + 1
 	world_hr  := sim_tick % 24
-	eye_str   := fmt.ctprintf("THE EYE  ·  %d pop  ·  Day %d  %02d:00", len(s.citizens), world_day, world_hr)
+	speed_tag := ""
+	if s.paused        { speed_tag = "  ⏸ PAUSED" }
+	else if s.speed >= 4 { speed_tag = "  ⏩ ×4" }
+	else if s.speed >= 2 { speed_tag = "  ⏩ ×2" }
+	eye_str := fmt.ctprintf("THE EYE  ·  %d pop  ·  Day %d  %02d:00%s", len(s.citizens), world_day, world_hr, speed_tag)
 	rl.DrawText(eye_str, px + 28, 30, 10, COL_DIM)
 
 	// Unrest bar

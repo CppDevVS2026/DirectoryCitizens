@@ -1,9 +1,9 @@
 package main
 
-import rl  "vendor:raylib"
+import "core:math"
 import eng "engine"
-import     "gui"
-import     "core:math"
+import "gui"
+import rl "vendor:raylib"
 
 main :: proc() {
 	rl.SetConfigFlags({.WINDOW_RESIZABLE, .MSAA_4X_HINT})
@@ -32,20 +32,20 @@ main :: proc() {
 		rl.BeginDrawing()
 		rl.ClearBackground(gui.sky_color(game_tick))
 		gui.Draw_World(&state)
-		gui.Draw_Night_Overlay(game_tick, gui.PANEL_X, gui.SCREEN_H)
+		gui.Draw_Night_Overlay(game_tick, gui.SCREEN_W, gui.SCREEN_H)
 		gui.Draw_Hud(&state)
 		rl.EndDrawing()
 	}
 }
 
 update :: proc(s: ^eng.GameState, dt: f64) {
-	if !s.paused { s.tick += dt * f64(s.speed) }
+	if !s.paused {s.tick += dt * f64(s.speed)}
 
 	// Speed controls
-	if rl.IsKeyPressed(.SPACE) { s.paused = !s.paused }
-	if rl.IsKeyPressed(.ONE)   { s.speed = 1.0; s.paused = false }
-	if rl.IsKeyPressed(.TWO)   { s.speed = 2.0; s.paused = false }
-	if rl.IsKeyPressed(.THREE) { s.speed = 4.0; s.paused = false }
+	if rl.IsKeyPressed(.SPACE) {s.paused = !s.paused}
+	if rl.IsKeyPressed(.ONE) {s.speed = 1.0; s.paused = false}
+	if rl.IsKeyPressed(.TWO) {s.speed = 2.0; s.paused = false}
+	if rl.IsKeyPressed(.THREE) {s.speed = 4.0; s.paused = false}
 
 	// Arrow key citizen navigation
 	n := i32(len(s.citizens))
@@ -64,15 +64,15 @@ update :: proc(s: ^eng.GameState, dt: f64) {
 
 	// ESC deselects and drops follow
 	if rl.IsKeyPressed(.ESCAPE) {
-		s.selected   = -1
+		s.selected = -1
 		s.follow_sel = false
 	}
 
 	// R = reset camera to default position
 	if rl.IsKeyPressed(.R) {
 		s.camera.position = {12, 8, 12}
-		s.camera.target   = {0, 0.5, 0}
-		s.follow_sel      = false
+		s.camera.target = {0, 0.5, 0}
+		s.follow_sel = false
 	}
 
 	// F = toggle camera follow on selected citizen
@@ -80,12 +80,12 @@ update :: proc(s: ^eng.GameState, dt: f64) {
 		s.follow_sel = s.selected >= 0 && !s.follow_sel
 	}
 	// Deselect drops follow
-	if s.selected < 0 { s.follow_sel = false }
+	if s.selected < 0 {s.follow_sel = false}
 
 	// Camera follow: smoothly orbit target toward selected citizen
 	if s.follow_sel && s.selected >= 0 && int(s.selected) < len(s.citizens) {
-		c      := &s.citizens[s.selected]
-		lerp   := f32(1 - math.exp_f64(-8 * dt))
+		c := &s.citizens[s.selected]
+		lerp := f32(1 - math.exp_f64(-8 * dt))
 		s.camera.target.x += (c.world_pos.x - s.camera.target.x) * lerp
 		s.camera.target.z += (c.world_pos.z - s.camera.target.z) * lerp
 	}
@@ -96,18 +96,18 @@ update :: proc(s: ^eng.GameState, dt: f64) {
 	stress := f32(0)
 	if len(s.citizens) > 0 {
 		for &c in s.citizens {
-			if c.hunger >= 80 || c.sleep <= 20 { stress += 1 }
+			if c.hunger >= 80 || c.sleep <= 20 {stress += 1}
 		}
 		stress /= f32(len(s.citizens))
 	}
 	eng.update_audio(&s.audio, stress)
 
 	mouse := rl.GetMousePosition()
-	if mouse.x < f32(gui.PANEL_X) {
+	if true {
 		rl.UpdateCamera(&s.camera, .ORBITAL)
 
 		if rl.IsMouseButtonPressed(.LEFT) {
-			ray    := rl.GetScreenToWorldRay(mouse, s.camera)
+			ray := rl.GetScreenToWorldRay(mouse, s.camera)
 			best_d := f32(999)
 			best_i := i32(-1)
 			for &c, i in s.citizens {
@@ -132,6 +132,7 @@ update :: proc(s: ^eng.GameState, dt: f64) {
 // Keep citizen_scroll in sync so the selected item is visible in the HUD list.
 sync_scroll :: proc(s: ^eng.GameState) {
 	vis := i32(4)
-	if s.selected < s.citizen_scroll { s.citizen_scroll = s.selected }
-	if s.selected >= s.citizen_scroll + vis { s.citizen_scroll = s.selected - vis + 1 }
+	if s.selected < s.citizen_scroll {s.citizen_scroll = s.selected}
+	if s.selected >= s.citizen_scroll + vis {s.citizen_scroll = s.selected - vis + 1}
 }
+

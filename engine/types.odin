@@ -82,6 +82,7 @@ DeathMarker :: struct {
 }
 
 GameState :: struct {
+	layout:         Gui_Layout,
 	camera:         rl.Camera3D,
 	citizens:       [dynamic]Citizen,
 	zones:          [dynamic]Zone,
@@ -110,6 +111,7 @@ make_game_state :: proc() -> GameState {
 	s: GameState
 	s.selected = -1
 
+	s.layout = gui.init_gui_layout()
 	s.camera = rl.Camera3D {
 		position   = {12, 8, 12},
 		target     = {0, 0.5, 0},
@@ -118,7 +120,7 @@ make_game_state :: proc() -> GameState {
 		projection = .PERSPECTIVE,
 	}
 
-	world_ini_cfg := world.load_world_ini("world/world.cfg", TICK_RATE)
+	world_ini_cfg := world.load_world_ini("world\\world.ini", TICK_RATE)
 	s.tick_rate = world_ini_cfg.tick_rate
 	s.world_name = world_ini_cfg.world_name
 	s.speed = 1.0

@@ -35,6 +35,7 @@ tick_simulation :: proc(s: ^GameState, dt: f64) {
 	if accumulator < s.tick_rate {return}
 	accumulator -= s.tick_rate
 
+	tick_season(s)
 	tick_needs(s)
 	tick_behavior(s)
 	tick_politics(s)
@@ -68,15 +69,42 @@ tick_simulation :: proc(s: ^GameState, dt: f64) {
 	  We iterate backwards by index so we can safely remove dead citizens
 	  from the dynamic array mid-loop without skipping entries.
 */
+tick_season :: proc(s: ^GameState) {
+	if s.tick_rate <= 0 { return }
+	sim_tick    := int(s.tick / s.tick_rate)
+	curr_season := int(season_from_tick(sim_tick))
+	if curr_season == s.last_season { return }
+	s.last_season = curr_season
+	season        := Season(curr_season)
+	switch season {
+	case .Spring: push_event(s, "Spring arrives — the world breathes again",          .Info)
+	case .Summer: push_event(s, "Summer bakes Root Directory — hunger rises",          .Info)
+	case .Autumn: push_event(s, "Autumn sets in — exhaustion weighs heavier",          .Info)
+	case .Winter: push_event(s, "Winter grips Root Directory — health wears thin",     .Info)
+	}
+}
+
 tick_needs :: proc(s: ^GameState) {
+	sim_tick := int(s.tick / s.tick_rate) if s.tick_rate > 0 else 0
+	season   := season_from_tick(sim_tick)
+
+	// Season-dependent decay rates
+	hunger_rate, sleep_rate, health_mult: f32
+	switch season {
+	case .Spring: hunger_rate = 1.8; sleep_rate = 0.9; health_mult = 1.0
+	case .Summer: hunger_rate = 2.6; sleep_rate = 0.8; health_mult = 1.0
+	case .Autumn: hunger_rate = 2.0; sleep_rate = 1.3; health_mult = 1.0
+	case .Winter: hunger_rate = 1.8; sleep_rate = 1.5; health_mult = 1.3
+	}
+
 	// Iterate backwards so ordered_remove doesn't skip anyone
 	for i := len(s.citizens) - 1; i >= 0; i -= 1 {
 		c := &s.citizens[i]
 
-		// --- Needs decay ---
-		c.hunger = min(c.hunger + 2,   100)
-		c.sleep  = max(c.sleep  - 1,     0)
-		c.social = max(c.social - 0.5,   0)
+		// --- Needs decay (season-modulated) ---
+		c.hunger = min(c.hunger + hunger_rate, 100)
+		c.sleep  = max(c.sleep  - sleep_rate,    0)
+		c.social = max(c.social - 0.5,           0)
 
 		// --- Stress accumulation ---
 		// stress_ticks counts consecutive ticks where needs are critical.
@@ -99,10 +127,10 @@ tick_needs :: proc(s: ^GameState) {
 			push_event(s, fmt.ctprintf("%s is near death", c.name), .Info)
 		}
 
-		// --- Health damage (kicks in after 3 sustained danger ticks) ---
+		// --- Health damage (kicks in after 3 sustained danger ticks; amplified in winter) ---
 		if c.stress_ticks >= 3 {
-			if c.hunger >= 80 { c.health -= 1   }
-			if c.sleep  <= 20 { c.health -= 0.5 }
+			if c.hunger >= 80 { c.health -= 1.0 * health_mult }
+			if c.sleep  <= 20 { c.health -= 0.5 * health_mult }
 			c.health = max(c.health, 0)
 		}
 
@@ -203,7 +231,10 @@ tick_behavior :: proc(s: ^GameState) {
 		new_status   := behavior_status(c.behavior, string(c.zone))
 		c.status      = strings.clone_to_cstring(new_status, context.allocator)
 
-		if c.behavior == .Eating {
+		// Jail containment — exiled citizens cannot leave The Jail
+		if string(c.zone) == "The Jail" {
+			target_zone = "The Jail"
+		} else if c.behavior == .Eating {
 			target_zone = "Market District"
 		} else if c.behavior == .Socializing {
 			target_zone = nearest_populated_zone(s, string(c.zone), i)

@@ -96,12 +96,21 @@ Draw_Hud :: proc(s: ^eng.GameState) {
 	sim_tick  := int(s.tick / s.tick_rate) if s.tick_rate > 0 else 0
 	world_day := sim_tick / 24 + 1
 	world_hr  := sim_tick % 24
-	speed_tag := ""
-	if s.paused        { speed_tag = "  ⏸ PAUSED" }
-	else if s.speed >= 4 { speed_tag = "  ⏩ ×4" }
-	else if s.speed >= 2 { speed_tag = "  ⏩ ×2" }
-	eye_str := fmt.ctprintf("THE EYE  ·  %d pop  ·  Day %d  %02d:00%s", len(s.citizens), world_day, world_hr, speed_tag)
-	rl.DrawText(eye_str, px + 28, 30, 10, COL_DIM)
+	speed_tag := cstring("")
+	if s.paused          { speed_tag = "  PAUSED" }
+	else if s.speed >= 4 { speed_tag = "  x4" }
+	else if s.speed >= 2 { speed_tag = "  x2" }
+	season      := eng.season_from_tick(sim_tick)
+	season_str  := eng.season_name(season)
+	season_col  := season_color(season)
+	base_str    := fmt.ctprintf("THE EYE  ·  %d pop  ·  Day %d  %02d:00  ", len(s.citizens), world_day, world_hr)
+	bw          := rl.MeasureText(base_str, 10)
+	rl.DrawText(base_str, px + 28, 30, 10, COL_DIM)
+	rl.DrawText(season_str, px + 28 + bw, 30, 10, season_col)
+	if speed_tag != cstring("") {
+		sw3 := rl.MeasureText(season_str, 10)
+		rl.DrawText(speed_tag, px + 28 + bw + sw3, 30, 10, COL_DIM)
+	}
 
 	// World history stats (right-aligned)
 	hist_str := fmt.ctprintf("deaths: %d  peak: %d", s.total_deaths, s.max_pop_seen)
@@ -529,6 +538,16 @@ draw_day_clock :: proc(cx, cy, r: i32, hour: int, day: int) {
 			rl.DrawCircle(st[0], st[1], 1, {200, 215, 255, twinkle})
 		}
 	}
+}
+
+season_color :: proc(s: eng.Season) -> rl.Color {
+	switch s {
+	case .Spring: return {75,  210,  90, 255}   // fresh green
+	case .Summer: return {255, 195,  45, 255}   // warm gold
+	case .Autumn: return {225, 130,  40, 255}   // burnt orange
+	case .Winter: return { 90, 175, 255, 255}   // cold blue
+	}
+	return COL_DIM
 }
 
 behavior_color :: proc(b: eng.Behavior) -> rl.Color {

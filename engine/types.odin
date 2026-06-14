@@ -2,6 +2,23 @@ package engine
 
 import rl "vendor:raylib"
 
+// 72 sim-ticks per season (= 3 in-game days). Four seasons per year.
+Season :: enum u8 { Spring, Summer, Autumn, Winter }
+
+season_name :: proc(s: Season) -> cstring {
+	switch s {
+	case .Spring: return "SPRING"
+	case .Summer: return "SUMMER"
+	case .Autumn: return "AUTUMN"
+	case .Winter: return "WINTER"
+	}
+	return "SPRING"
+}
+
+season_from_tick :: proc(sim_tick: int) -> Season {
+	return Season((sim_tick / 72) % 4)
+}
+
 // What a citizen is currently doing — drives status text and position drift.
 Behavior :: enum u8 {
 	Idle,        // default — no pressing need
@@ -68,6 +85,7 @@ GameState :: struct {
 	citizen_scroll: i32,
 	tick:           f64,
 	world_name:     cstring,    // from world.cfg world_name field
+	last_season:    int,        // 0-3; used to detect season transitions
 	paused:         bool,
 	speed:          f32,        // 1.0 = normal, 2.0 = fast, 4.0 = fastest
 	follow_sel:     bool,       // camera tracks selected citizen when true

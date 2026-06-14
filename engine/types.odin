@@ -55,6 +55,8 @@ GameState :: struct {
 	events:         [dynamic]GameEvent,
 	eye:            EyeState, // live filesystem watcher (The Eye)
 	tick_rate:      f64,      // seconds per simulation step, loaded from world.cfg
+	// E6 — politics
+	unrest:         f32,      // 0–100: rising tension across the population
 	selected:       i32,
 	citizen_scroll: i32,
 	tick:           f64,

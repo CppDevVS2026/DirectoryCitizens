@@ -151,6 +151,7 @@ zone_layout :: proc(name: string, fallback_index: int) -> (pos: rl.Vector3, size
 	case "The Keep":            return {-2,  0,  4}, {5, 6.0, 5}
 	case "The Archive":         return {10,  0,  0}, {6, 3.0, 5}
 	case "The Null Quarter":    return {-13, 0, 10}, {5, 1.5, 5}
+	case "The Jail":            return {-6,  0, 16}, {4, 5.0, 4} // tall walls, isolated
 	}
 	// Fallback: lay unknown zones in a row past z=16 so they're visible
 	return {f32(fallback_index) * 10, 0, 16}, {6, 2, 6}
@@ -332,7 +333,7 @@ scan_world :: proc(world_path: string) -> [dynamic]Zone {
 		// Track how many unknown zones we've seen for spacing
 		switch name {
 		case "Market District", "Residential Quarter", "The Keep",
-		     "The Archive", "The Null Quarter":
+		     "The Archive", "The Null Quarter", "The Jail":
 			// known zone — no fallback increment needed
 		case:
 			fallback += 1

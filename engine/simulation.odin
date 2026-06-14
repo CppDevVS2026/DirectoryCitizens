@@ -35,7 +35,7 @@ tick_simulation :: proc(s: ^GameState, dt: f64) {
 
 	tick_needs(s)
 	tick_behavior(s)
-	// tick_politics(s)  — E6, not yet implemented
+	tick_politics(s)
 }
 
 /*
@@ -226,6 +226,7 @@ behavior_status :: proc(b: Behavior, zone: string) -> string {
 		case "The Keep":            return "Eating at the guard's table"
 		case "The Archive":         return "Chewing on rations between scrolls"
 		case "Residential Quarter": return "Cooking at home"
+		case "The Jail":            return "Eating cold rations through the bars"
 		}
 		return "Searching for food"
 
@@ -236,6 +237,7 @@ behavior_status :: proc(b: Behavior, zone: string) -> string {
 		case "Market District":     return "Slumped behind a stall"
 		case "The Archive":         return "Asleep over an open book"
 		case "The Null Quarter":    return "Collapsed in the gray"
+		case "The Jail":            return "Sleeping on a stone floor"
 		}
 		return "Sleeping"
 
@@ -246,6 +248,7 @@ behavior_status :: proc(b: Behavior, zone: string) -> string {
 		case "The Keep":            return "Gossiping with the guards"
 		case "The Archive":         return "Debating with a scholar"
 		case "The Null Quarter":    return "Talking to shadows"
+		case "The Jail":            return "Whispering through the cell wall"
 		}
 		return "Looking for company"
 
@@ -256,6 +259,7 @@ behavior_status :: proc(b: Behavior, zone: string) -> string {
 		case "The Keep":            return "Sharpening weapons"
 		case "The Archive":         return "Copying manuscripts"
 		case "The Null Quarter":    return "Staring at the wall"
+		case "The Jail":            return "Breaking rocks in the yard"
 		}
 		return "Working"
 
@@ -266,6 +270,7 @@ behavior_status :: proc(b: Behavior, zone: string) -> string {
 		case "The Keep":            return "Pacing the battlements"
 		case "The Archive":         return "Wandering the stacks"
 		case "The Null Quarter":    return "Drifting"
+		case "The Jail":            return "Pacing the cell"
 		}
 		return "Wandering"
 
@@ -276,6 +281,7 @@ behavior_status :: proc(b: Behavior, zone: string) -> string {
 		case "The Keep":            return "On guard duty"
 		case "The Archive":         return "Reading quietly"
 		case "The Null Quarter":    return "Staring into nothing"
+		case "The Jail":            return "Counting the hours"
 		}
 		return "Idle"
 	}

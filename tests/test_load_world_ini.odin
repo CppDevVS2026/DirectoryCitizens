@@ -3,7 +3,7 @@ package tests
 import "core:testing"
 import "core:os"
 import "core:strings"
-import wmng "../engine"
+import wmng "../engine/world_manager"
 
 @(test)
 test_load_world_ini :: proc(t: ^testing.T) {

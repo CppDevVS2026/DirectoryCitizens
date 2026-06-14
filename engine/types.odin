@@ -86,6 +86,9 @@ GameState :: struct {
 	tick:           f64,
 	world_name:     cstring,    // from world.cfg world_name field
 	last_season:    int,        // 0-3; used to detect season transitions
+	pop_history:    [48]int,    // circular buffer of population snapshots (every 5 ticks)
+	pop_hist_idx:   int,
+	pop_hist_full:  bool,       // true once all 48 slots have been written
 	paused:         bool,
 	speed:          f32,        // 1.0 = normal, 2.0 = fast, 4.0 = fastest
 	follow_sel:     bool,       // camera tracks selected citizen when true

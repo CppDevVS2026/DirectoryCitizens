@@ -112,10 +112,15 @@ Draw_Hud :: proc(s: ^eng.GameState) {
 		rl.DrawText(speed_tag, px + 28 + bw + sw3, 30, 10, COL_DIM)
 	}
 
-	// World history stats (right-aligned)
-	hist_str := fmt.ctprintf("deaths: %d  peak: %d", s.total_deaths, s.max_pop_seen)
-	hw       := rl.MeasureText(hist_str, 9)
-	rl.DrawText(hist_str, px + pw - hw - 8, 30, 9, COL_TEXT_DIM)
+	// Population sparkline + deaths/peak — bottom-right of header
+	spark_w   := i32(64)
+	spark_h   := i32(16)
+	spark_x   := px + pw - spark_w - 8
+	spark_y   := i32(30)
+	draw_pop_sparkline(spark_x, spark_y, spark_w, spark_h, s)
+	deaths_str := fmt.ctprintf("d:%d pk:%d", s.total_deaths, s.max_pop_seen)
+	dw         := rl.MeasureText(deaths_str, 8)
+	rl.DrawText(deaths_str, spark_x - dw - 6, spark_y + 4, 8, COL_TEXT_DIM)
 
 	// Unrest bar
 	unrest_y  := i32(52)
@@ -538,6 +543,46 @@ draw_day_clock :: proc(cx, cy, r: i32, hour: int, day: int) {
 			rl.DrawCircle(st[0], st[1], 1, {200, 215, 255, twinkle})
 		}
 	}
+}
+
+draw_pop_sparkline :: proc(x, y, w, h: i32, s: ^eng.GameState) {
+	rl.DrawRectangle(x, y, w, h, {10, 13, 20, 200})
+	rl.DrawRectangleLines(x, y, w, h, COL_BORDER)
+
+	n     := len(s.pop_history)
+	count := n if s.pop_hist_full else s.pop_hist_idx
+	if count < 2 { return }
+
+	// Find range
+	peak := 1
+	for i in 0..<count {
+		idx := (s.pop_hist_idx - count + i + n) % n
+		if s.pop_history[idx] > peak { peak = s.pop_history[idx] }
+	}
+
+	prev_px, prev_py := x, y + h - 1
+	for i in 0..<count {
+		idx  := (s.pop_hist_idx - count + i + n) % n
+		val  := s.pop_history[idx]
+		px2  := x + i32(i) * (w - 1) / i32(count - 1)
+		py2  := y + h - 1 - i32(val) * (h - 2) / i32(peak)
+		if i > 0 {
+			frac   := f32(i) / f32(count - 1)
+			line_c := rl.Color{
+				u8(f32(COL_ACCENT.r) * frac + f32(COL_DANGER.r) * (1 - frac)),
+				u8(f32(COL_ACCENT.g) * frac + f32(COL_DANGER.g) * (1 - frac)),
+				u8(f32(COL_ACCENT.b) * frac + f32(COL_DANGER.b) * (1 - frac)),
+				180,
+			}
+			rl.DrawLine(prev_px, prev_py, px2, py2, line_c)
+		}
+		prev_px = px2; prev_py = py2
+	}
+
+	// Current value dot
+	cur  := len(s.citizens)
+	cy   := y + h - 1 - i32(cur) * (h - 2) / i32(peak)
+	rl.DrawCircle(x + w - 1, cy, 2, COL_ACCENT)
 }
 
 season_color :: proc(s: eng.Season) -> rl.Color {

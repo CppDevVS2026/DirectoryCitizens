@@ -40,8 +40,10 @@ tick_simulation :: proc(s: ^GameState, dt: f64) {
 	tick_behavior(s)
 	tick_politics(s)
 	tick_renewal(s)
+	tick_jail_escape(s)
 	tick_world_events(s)
 	if len(s.citizens) > s.max_pop_seen { s.max_pop_seen = len(s.citizens) }
+	tick_pop_history(s)
 }
 
 /*
@@ -696,4 +698,61 @@ tick_world_events :: proc(s: ^GameState) {
 		push_event(s, "City-wide curfew — no one moves until dawn", .Info)
 		for &c in s.citizens { c.social = max(c.social - 25, 0) }
 	}
+}
+
+// ---------------------------------------------------------------------------
+// Jail escape — jailed citizens have a small chance to break out
+// ---------------------------------------------------------------------------
+
+/*
+	tick_jail_escape — every 15 ticks, each jailed citizen rolls a 10% escape
+	chance. On success, their .citizen file is moved to the most-populated
+	non-Jail zone (they flee toward the crowd). The Eye fires a Rename event
+	which updates their path and zone automatically.
+*/
+tick_jail_escape :: proc(s: ^GameState) {
+	if renewal_tick % 15 != 0 { return }
+
+	for &c in s.citizens {
+		if string(c.zone) != "The Jail" { continue }
+
+		// Pseudo-random: mix renewal_tick with name bytes
+		name_bytes := transmute([]u8)string(c.name)
+		seed       := u32(renewal_tick) * 2654435761
+		if len(name_bytes) > 0 { seed ~= u32(name_bytes[0]) * 16777619 }
+		if seed % 10 != 0 { continue }  // 10% chance
+
+		// Find target: most-populated non-Jail zone
+		target   := "Market District"
+		best_pop := -1
+		for &z in s.zones {
+			zn := string(z.name)
+			if zn == "The Jail" { continue }
+			pop := 0
+			for &c2 in s.citizens {
+				if string(c2.zone) == zn { pop += 1 }
+			}
+			if pop > best_pop { best_pop = pop; target = zn }
+		}
+
+		name_lo  := strings.to_lower(string(c.name), context.temp_allocator)
+		new_path := fmt.tprintf("world/%s/%s.citizen", target, name_lo)
+		old_path := string(c.path)
+
+		if os.rename(old_path, new_path) == nil {
+			push_event(s, fmt.ctprintf("%s escaped from The Jail", c.name), .Move)
+		}
+		break  // one escape per 15-tick window
+	}
+}
+
+// ---------------------------------------------------------------------------
+// Population history — circular buffer for the HUD sparkline
+// ---------------------------------------------------------------------------
+
+tick_pop_history :: proc(s: ^GameState) {
+	if renewal_tick % 5 != 0 { return }
+	s.pop_history[s.pop_hist_idx] = len(s.citizens)
+	s.pop_hist_idx  = (s.pop_hist_idx + 1) % len(s.pop_history)
+	if s.pop_hist_idx == 0 { s.pop_hist_full = true }
 }

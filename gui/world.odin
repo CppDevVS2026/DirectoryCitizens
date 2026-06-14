@@ -67,6 +67,8 @@ Draw_World :: proc(s: ^eng.GameState) {
 		draw_neighborhood(z, pop, stressed, avg_hp, s.tick, night)
 	}
 
+	draw_social_links(s.citizens[:])
+
 	for &c, ci in s.citizens {
 		bob   := f32(math.sin_f64(s.tick * 2.0 + f64(ci) * 1.3)) * 0.06
 		base  := rl.Vector3{c.world_pos.x, bob, c.world_pos.z}
@@ -486,35 +488,75 @@ draw_jail_watchtower :: proc(pos: rl.Vector3, col: rl.Color, night: bool) {
 // ---------------------------------------------------------------------------
 
 draw_citizen_figure :: proc(base: rl.Vector3, c: eng.Citizen, is_sel: bool, tick: f64, idx: int) {
-	foot_y    := base.y + 0.18
-	body_h    := f32(0.55)
-	head_r    := f32(0.155)
 	body_r    := f32(0.12)
 	in_danger := c.hunger >= 80 || c.sleep <= 20
 
-	foot     := rl.Vector3{base.x, foot_y, base.z}
-	shoulder := rl.Vector3{base.x, foot_y + body_h, base.z}
-	head     := rl.Vector3{base.x, foot_y + body_h + head_r + 0.04, base.z}
-
 	rl.DrawCircle3D({base.x, 0.008, base.z}, 0.20, {1, 0, 0}, 90, {0, 0, 0, 55})
-	rl.DrawCapsule(foot, shoulder, body_r, 4, 4, c.color)
-	rl.DrawSphere(head, head_r, c.color)
 
-	chest := rl.Vector3{base.x, foot_y + body_h * 0.55, base.z - body_r - 0.01}
-	rl.DrawSphere(chest, 0.04, behavior_dot_color(c.behavior))
+	sleeping := c.behavior == .Sleeping
 
-	if in_danger {
-		pt := f32(math.sin_f64(tick * 4.5 + f64(idx) * 0.8)) * 0.5 + 0.5
-		rl.DrawCircle3D({base.x, foot_y + body_h*0.4, base.z}, 0.28 + pt*0.16, {1,0,0}, 90, {225, 60, 55, u8(55 + pt*110)})
+	foot, shoulder, head: rl.Vector3
+	if sleeping {
+		// Lying down — capsule runs along X axis
+		lie_y    := base.y + 0.16
+		foot      = {base.x - 0.28, lie_y, base.z}
+		shoulder  = {base.x + 0.28, lie_y, base.z}
+		head      = {base.x + 0.42, lie_y, base.z}
+	} else {
+		foot_y   := base.y + 0.18
+		body_h   := f32(0.55)
+		head_r   := f32(0.155)
+		foot      = {base.x, foot_y, base.z}
+		shoulder  = {base.x, foot_y + body_h, base.z}
+		head      = {base.x, foot_y + body_h + head_r + 0.04, base.z}
 	}
-	if c.stress_ticks >= 3 {
+
+	col := c.color
+	if sleeping {
+		// Dim sleeping citizens slightly
+		col = rl.Color{u8(f32(c.color.r) * 0.6), u8(f32(c.color.g) * 0.6), u8(f32(c.color.b) * 0.6), 255}
+	}
+	rl.DrawCapsule(foot, shoulder, body_r, 4, 4, col)
+	rl.DrawSphere(head, 0.155, col)
+
+	// Behavior dot on chest
+	if !sleeping {
+		foot_y := base.y + 0.18
+		chest := rl.Vector3{base.x, foot_y + 0.55 * 0.55, base.z - body_r - 0.01}
+		rl.DrawSphere(chest, 0.04, behavior_dot_color(c.behavior))
+	}
+
+	if in_danger && !sleeping {
+		pt := f32(math.sin_f64(tick * 4.5 + f64(idx) * 0.8)) * 0.5 + 0.5
+		cy := base.y + 0.18 + 0.55 * 0.4
+		rl.DrawCircle3D({base.x, cy, base.z}, 0.28 + pt*0.16, {1,0,0}, 90, {225, 60, 55, u8(55 + pt*110)})
+	}
+	if c.stress_ticks >= 3 && !sleeping {
+		cy := base.y + 0.18 + 0.55 * 0.4
 		sr := f32(0.48) + f32(math.sin_f64(tick * 2.5 + f64(idx) * 1.1)) * 0.08
-		rl.DrawCircle3D({base.x, foot_y + body_h*0.4, base.z}, sr, {1,0,0}, 90, {225, 60, 55, 32})
+		rl.DrawCircle3D({base.x, cy, base.z}, sr, {1,0,0}, 90, {225, 60, 55, 32})
 	}
 	if is_sel {
 		rl.DrawCircle3D(foot, 0.27, {1,0,0}, 90, {255, 255, 255, 210})
 		rl.DrawCircle3D(head, 0.22, {1,0,0}, 90, {255, 255, 255, 160})
 		rl.DrawLine3D({base.x, 0.015, base.z}, foot, {255, 255, 255, 70})
+	}
+}
+
+// draw_social_links — faint thread lines between all socializing citizen pairs
+draw_social_links :: proc(citizens: []eng.Citizen) {
+	for &ca, ai in citizens {
+		if ca.behavior != .Socializing { continue }
+		for &cb, bi in citizens {
+			if bi <= ai { continue }
+			if cb.behavior != .Socializing { continue }
+			mid_y := f32(0.8)
+			rl.DrawLine3D(
+				{ca.world_pos.x, mid_y, ca.world_pos.z},
+				{cb.world_pos.x, mid_y, cb.world_pos.z},
+				{200, 95, 255, 55},
+			)
+		}
 	}
 }
 

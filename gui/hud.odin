@@ -334,25 +334,81 @@ Draw_Hud :: proc(s: ^eng.GameState) {
 	y += detail_h + 8
 
 	// ==========================================================================
+	// MINIMAP
+	// ==========================================================================
+	mm_h   := i32(116)
+	mm_y   := sh - mm_h - 2
+	mm_x   := px + 2
+	mm_w   := pw - 4
+
+	rl.DrawRectangle(mm_x, mm_y, mm_w, mm_h, {6, 8, 14, 255})
+	rl.DrawRectangle(mm_x, mm_y, mm_w, 1, COL_BORDER)
+	draw_section_header("MAP", px, pw, mm_y + 4)
+
+	// World bounds → minimap rect
+	WX0 :: f32(-16); WX1 :: f32(18)
+	WZ0 :: f32(-11); WZ1 :: f32(24)
+	map_x := mm_x + 4;  map_w2 := mm_w - 8
+	map_yy := mm_y + 20; map_h2 := mm_h - 24
+
+	world_to_map :: proc(wx, wz: f32, mx, mw, my, mh: i32) -> (i32, i32) {
+		tx := (wx - WX0) / (WX1 - WX0)
+		tz := (wz - WZ0) / (WZ1 - WZ0)
+		return mx + i32(tx * f32(mw)), my + i32(tz * f32(mh))
+	}
+
+	// Zone rectangles
+	for &z in s.zones {
+		zx1, zy1 := world_to_map(z.pos.x,            z.pos.z,            map_x, map_w2, map_yy, map_h2)
+		zx2, zy2 := world_to_map(z.pos.x + z.size.x, z.pos.z + z.size.z, map_x, map_w2, map_yy, map_h2)
+		zw := zx2 - zx1; zh := zy2 - zy1
+		if zw < 2 { zw = 2 }; if zh < 2 { zh = 2 }
+		bg := rl.Color{z.color.r / 7, z.color.g / 7, z.color.b / 7, 255}
+		rl.DrawRectangle(zx1, zy1, zw, zh, bg)
+		rl.DrawRectangleLines(zx1, zy1, zw, zh, rl.Color{z.color.r, z.color.g, z.color.b, 140})
+	}
+
+	// City center dot
+	ccx, ccy := world_to_map(0, 0, map_x, map_w2, map_yy, map_h2)
+	rl.DrawCircle(ccx, ccy, 2, {55, 148, 235, 200})
+
+	// Citizen dots
+	for &c in s.citizens {
+		cdx, cdy := world_to_map(c.world_pos.x, c.world_pos.z, map_x, map_w2, map_yy, map_h2)
+		in_danger := c.hunger >= 80 || c.sleep <= 20
+		dc := rl.Color{COL_DANGER.r, COL_DANGER.g, COL_DANGER.b, 220} if in_danger else rl.Color{c.color.r, c.color.g, c.color.b, 220}
+		rl.DrawCircle(cdx, cdy, 2, dc)
+	}
+
+	// ==========================================================================
 	// EVENT LOG
 	// ==========================================================================
-	log_area := sh - y - 4
+	log_area := mm_y - y - 4
 	if log_area < 30 { return }
 
 	draw_section_header("EVENTS", px, pw, y)
 	y += 20
 
-	ev_h := i32(19)
+	ev_h := i32(20)
 	rl.BeginScissorMode(px + 2, y, pw - 4, log_area - 22)
+	tick_rate := s.tick_rate if s.tick_rate > 0 else 2.0
 	for i in 0..<len(s.events) {
 		ev   := &s.events[i]
 		ey   := y + i32(i) * ev_h
 		col  := event_color(ev.kind)
-		// Fade older entries
-		age  := u8(max(60, 255 - i * 18))
+		age  := u8(max(55, 255 - i * 20))
 		fcol := rl.Color{col.r, col.g, col.b, age}
-		rl.DrawCircle(px + 14, ey + ev_h / 2, 3, fcol)
-		rl.DrawText(ev.text, px + 24, ey + 4, 10, fcol)
+		dcol := rl.Color{COL_DIM.r, COL_DIM.g, COL_DIM.b, age / 2}
+
+		// World timestamp: Day N HH:00
+		ev_gtick  := int(ev.tick / tick_rate)
+		ev_day    := ev_gtick / 24 + 1
+		ev_hour   := ev_gtick % 24
+		ts_str    := fmt.ctprintf("D%d %02d:00", ev_day, ev_hour)
+		rl.DrawText(ts_str, px + 8, ey + 5, 8, dcol)
+
+		rl.DrawCircle(px + 60, ey + ev_h / 2, 2, fcol)
+		rl.DrawText(ev.text, px + 68, ey + 5, 9, fcol)
 	}
 	rl.EndScissorMode()
 }

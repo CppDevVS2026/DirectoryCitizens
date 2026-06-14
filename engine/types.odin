@@ -47,6 +47,7 @@ EventKind :: enum u8 {
 GameEvent :: struct {
 	text: cstring,
 	kind: EventKind,
+	tick: f64,      // s.tick at the moment the event fired (for timestamp display)
 }
 
 GameState :: struct {

@@ -145,7 +145,7 @@ smooth_citizens :: proc(s: ^GameState, dt: f64) {
 	inject_at shifts everything down; pop removes the last.
 */
 push_event :: proc(s: ^GameState, text: cstring, kind: EventKind) {
-	inject_at(&s.events, 0, GameEvent{text = text, kind = kind})
+	inject_at(&s.events, 0, GameEvent{text = text, kind = kind, tick = s.tick})
 	if len(s.events) > 20 {
 		pop(&s.events)
 	}

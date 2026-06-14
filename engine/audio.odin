@@ -94,15 +94,36 @@ shutdown_audio :: proc(a: ^AudioState) {
 // ---------------------------------------------------------------------------
 
 /*
-	update_audio — adjusts the stress drone volume based on population stress.
+	update_audio — feeds the drone stream and adjusts its volume.
 
-	stress_level: 0.0 (everyone fine) to 1.0 (everyone in danger).
-	Drone volume rises smoothly from 0 to 0.4 as the world deteriorates.
+	AudioStream requires data to be pushed every frame or the audio device
+	callback reads uninitialized memory. We push a chunk of silence each frame
+	and scale the volume by stress_level so the drone rises as citizens suffer.
+
+	stress_level: 0.0 (everyone fine) → 1.0 (everyone in danger).
 */
+DRONE_CHUNK :: 1024 // frames per update — small enough to avoid lag
+
 update_audio :: proc(a: ^AudioState, stress_level: f32) {
 	if !a.ready { return }
-	target_vol := stress_level * 0.4
+
+	target_vol := stress_level * 0.35
 	rl.SetAudioStreamVolume(a.drone, target_vol)
+
+	// Only push data when the stream has consumed the previous chunk.
+	if rl.IsAudioStreamProcessed(a.drone) {
+		// Generate a sine wave at 55 Hz (sub-bass) for the drone.
+		// We use a static phase so the wave is continuous across frames.
+		@static phase: f32
+		buf: [DRONE_CHUNK]f32
+		freq :: f32(55)
+		for i in 0..<DRONE_CHUNK {
+			buf[i] = math.sin_f32(phase)
+			phase  += 2 * math.PI * freq / f32(SAMPLE_RATE)
+			if phase > 2 * math.PI { phase -= 2 * math.PI }
+		}
+		rl.UpdateAudioStream(a.drone, raw_data(buf[:]), DRONE_CHUNK)
+	}
 }
 
 // ---------------------------------------------------------------------------

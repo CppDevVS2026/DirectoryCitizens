@@ -9,9 +9,13 @@ import rl "vendor:raylib"
 // QUEUE SPAWNS
 @(test)
 test_spawn_zone_queue :: proc(t: ^testing.T) {
+    file_counter :: proc() {
+        
+    }
 	Zone :: struct {
 		name:  cstring,
 		path:  cstring,
+        file_count: 
 		pos:   rl.Vector3,
 		size:  rl.Vector3,
 		color: rl.Color,

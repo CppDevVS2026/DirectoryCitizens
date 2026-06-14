@@ -200,13 +200,14 @@ drain_eye_events :: proc(eye: ^EyeState, s: ^GameState) {
 			}
 
 		case .StatChange:
-			// Reload stats from disk; preserve runtime-only stress_ticks.
+			// Reload stats from disk; preserve runtime-only fields not stored on disk.
 			for i in 0..<len(s.citizens) {
 				c := &s.citizens[i]
 				if string(c.path) == ev.path {
 					zone_name := string(c.zone)
 					if fresh, ok := load_citizen(ev.path, zone_name); ok {
 						fresh.stress_ticks = c.stress_ticks
+						fresh.behavior     = c.behavior   // don't reset on our own saves
 						s.citizens[i] = fresh
 						push_event(s, fmt.ctprintf("%s changed", fresh.name), .Info)
 					}
@@ -373,6 +374,8 @@ watcher_thread_proc :: proc(raw: rawptr) {
 				if rename_old != "" { delete(rename_old) }
 				rename_old = strings.clone(full_path, context.allocator)
 				delete(full_path)
+				// Mark full_path as consumed so the cleanup below doesn't double-free it.
+				full_path = ""
 
 			case win.FILE_ACTION_RENAMED_NEW_NAME:
 				if is_cit {

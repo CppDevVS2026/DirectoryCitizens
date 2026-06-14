@@ -10,40 +10,6 @@ import     "core:fmt"
 // game_tick is the simulation step count (real_seconds / tick_rate).
 // ---------------------------------------------------------------------------
 
-sky_color :: proc(game_tick: int) -> rl.Color {
-	hour := game_tick % 24
-
-	NIGHT :: rl.Color{ 3,  4,  9, 255}
-	DAWN  :: rl.Color{14,  9, 22, 255}
-	DAY   :: rl.Color{ 8, 10, 14, 255}
-	DUSK  :: rl.Color{16, 10, 20, 255}
-
-	lerp_sky :: proc(a, b: rl.Color, t: f32) -> rl.Color {
-		return rl.Color{
-			u8(f32(a.r) + f32(i16(b.r) - i16(a.r)) * t),
-			u8(f32(a.g) + f32(i16(b.g) - i16(a.g)) * t),
-			u8(f32(a.b) + f32(i16(b.b) - i16(a.b)) * t),
-			255,
-		}
-	}
-
-	switch {
-	case hour < 5:  return NIGHT
-	case hour < 7:  return lerp_sky(NIGHT, DAWN,  f32(hour - 5) / 2.0)
-	case hour < 8:  return lerp_sky(DAWN,  DAY,   f32(hour - 7))
-	case hour < 18: return DAY
-	case hour < 20: return lerp_sky(DAY,   DUSK,  f32(hour - 18) / 2.0)
-	case hour < 22: return lerp_sky(DUSK,  NIGHT, f32(hour - 20) / 2.0)
-	case:           return NIGHT
-	}
-}
-
-// is_nighttime returns true when street lamps should shine bright.
-is_nighttime :: proc(game_tick: int) -> bool {
-	h := game_tick % 24
-	return h < 7 || h >= 19
-}
-
 // ---------------------------------------------------------------------------
 // Main draw entry point
 // ---------------------------------------------------------------------------

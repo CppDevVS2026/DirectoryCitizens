@@ -67,7 +67,7 @@ load_citizen :: proc(file_path: string, zone_name: string) -> (Citizen, bool) {
 // Returns a dynamic array of Citizens — caller owns it.
 scan_zone :: proc(dir_path: string, zone_name: string) -> [dynamic]Citizen {
 	result: [dynamic]Citizen
-
+    
 	
 	handle, open_err := os.open(dir_path)
 	if open_err != nil { return result }

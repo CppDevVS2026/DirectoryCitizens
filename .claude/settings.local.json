@@ -27,10 +27,15 @@
       "Read(//c/Users/JcTheKing/.claude/skills/**)",
       "Bash(ls \"C:\\\\Users\\\\JcTheKing\\\\.claude\" 2>/dev/null)",
       "Read(//c/Users/JcTheKing/.claude/**)",
-      "Bash(mkdir -p \"C:\\\\Users\\\\JcTheKing\\\\.claude\\\\skills\\\\ccpm\")"
+      "Bash(mkdir -p \"C:\\\\Users\\\\JcTheKing\\\\.claude\\\\skills\\\\ccpm\")",
+      "Bash(gh repo *)",
+      "WebFetch(domain:github.com)",
+      "Bash(gh auth *)",
+      "Bash(mkdir -p \"c:/Users/JcTheKing/Projects/Yokim/Games/FilesRPG/DirectoryCitizens/docs/prd\" \"c:/Users/JcTheKing/Projects/Yokim/Games/FilesRPG/DirectoryCitizens/docs/epics\")"
     ],
     "additionalDirectories": [
-      "C:\\Users\\JcTheKing\\.claude\\skills"
+      "C:\\Users\\JcTheKing\\.claude\\skills",
+      "c:\\Users\\JcTheKing\\Projects\\Yokim\\Games\\FilesRPG\\DirectoryCitizens\\docs"
     ]
   }
 }

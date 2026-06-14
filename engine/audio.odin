@@ -5,9 +5,6 @@ package engine
 	==========
 	E7 — Reactive audio system.
 
-	No external audio files required. All sounds are procedurally generated
-	from sine waves at startup using Raylib's Wave API.
-
 	Sound design:
 	  Spawn   — short ascending chirp (440 → 880 Hz, 0.15s) — arrival
 	  Death   — slow descending tone  (220 → 110 Hz, 0.4s)  — loss
@@ -17,16 +14,17 @@ package engine
 	  Revolt  — harsh buzz (150 Hz, modulated, 0.5s)         — exile
 
 	Ambient:
-	  The "stress drone" is a continuous low-frequency sound (55 Hz) whose
-	  volume is driven by the average citizen stress level. When everyone
-	  is fine, silence. When the population collapses, the drone rises.
+	  startup_glitch        — one-shot on launch (assets/sfx/startup_glitch.wav)
+	  ambience_server_room  — constant background loop, low volume
+	  ambience_server_wide  — second loop, volume rises with stress (layered texture)
+	  stress drone          — procedural 55 Hz sub-bass, also stress-driven
 
 	Architecture:
 	  AudioState lives inside GameState.
-	  init_audio()    → call once at startup (after InitAudioDevice)
-	  shutdown_audio() → call at shutdown
+	  init_audio()       → call once at startup (after InitAudioDevice)
+	  shutdown_audio()   → call at shutdown
 	  play_event_sound() → called from push_event to queue a sound
-	  update_audio()  → call each frame to service the stress drone
+	  update_audio()     → call each frame to service streams and update volumes
 */
 
 import rl "vendor:raylib"
@@ -37,14 +35,17 @@ import "core:math"
 // ---------------------------------------------------------------------------
 
 AudioState :: struct {
-	ready:       bool,       // false if InitAudioDevice failed
-	sfx_spawn:   rl.Sound,
-	sfx_death:   rl.Sound,
-	sfx_move:    rl.Sound,
-	sfx_rename:  rl.Sound,
-	sfx_unrest:  rl.Sound,
-	sfx_revolt:  rl.Sound,
-	drone:       rl.AudioStream, // continuous stress drone
+	ready:        bool,           // false if InitAudioDevice failed
+	sfx_spawn:    rl.Sound,
+	sfx_death:    rl.Sound,
+	sfx_move:     rl.Sound,
+	sfx_rename:   rl.Sound,
+	sfx_unrest:   rl.Sound,
+	sfx_revolt:   rl.Sound,
+	sfx_startup:  rl.Sound,      // one-shot boot glitch
+	amb_room:     rl.Music,      // server room loop (constant low-volume bed)
+	amb_wide:     rl.Music,      // wider server room loop (fades in with stress)
+	drone:        rl.AudioStream, // procedural 55 Hz stress drone
 	drone_active: bool,
 }
 

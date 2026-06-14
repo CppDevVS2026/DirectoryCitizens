@@ -36,7 +36,11 @@
       "Bash(git commit -m ' *)",
       "Bash(ls \"world/Market District/\")",
       "Bash(ls \"world/Residential Quarter/\")",
-      "Bash(ls \"world/The Keep/\")"
+      "Bash(ls \"world/The Keep/\")",
+      "PowerShell(New-Item -ItemType Directory -Force \"assets\\\\sfx\")",
+      "PowerShell(Move-Item \"assets\\\\572773__zeraora__glitch019-computer-startup.wav\"                                  \"assets\\\\sfx\\\\startup_glitch.wav\")",
+      "PowerShell(Move-Item \"assets\\\\610761__devern__computer-server-room-ambience-loop.wav\"                           \"assets\\\\sfx\\\\ambience_server_room.wav\")",
+      "PowerShell(Move-Item \"assets\\\\712564__newlocknew__ambdsgn_server-roomdata-centermachine-and-vent-noisewide.wav\" \"assets\\\\sfx\\\\ambience_server_wide.wav\")"
     ],
     "additionalDirectories": [
       "C:\\Users\\JcTheKing\\.claude\\skills",

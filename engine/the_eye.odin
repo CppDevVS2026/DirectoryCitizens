@@ -201,15 +201,16 @@ drain_eye_events :: proc(eye: ^EyeState, s: ^GameState) {
 
 		case .StatChange:
 			// Reload stats from disk; preserve runtime-only fields not stored on disk.
+			// No event is pushed — this fires on every auto-save tick, not just
+			// external edits, and would flood the log with noise.
 			for i in 0..<len(s.citizens) {
 				c := &s.citizens[i]
 				if string(c.path) == ev.path {
 					zone_name := string(c.zone)
 					if fresh, ok := load_citizen(ev.path, zone_name); ok {
 						fresh.stress_ticks = c.stress_ticks
-						fresh.behavior     = c.behavior   // don't reset on our own saves
+						fresh.behavior     = c.behavior
 						s.citizens[i] = fresh
-						push_event(s, fmt.ctprintf("%s changed", fresh.name), .Info)
 					}
 					break
 				}
@@ -341,25 +342,26 @@ watcher_thread_proc :: proc(raw: rawptr) {
 			// Treat as a directory if it has no extension (crude but works for world/ layout).
 			is_dir := !strings.contains(filepath.base(full_path), ".")
 
-			ev   := EyeEvent{}
-			emit := false
+			ev        := EyeEvent{}
+			emit      := false
+			path_used := false // true when full_path ownership was transferred or freed
 
 			switch info.action {
 			case win.FILE_ACTION_ADDED:
 				if is_cit {
-					ev   = EyeEvent{action = .Spawn,      path = full_path}
+					ev   = EyeEvent{action = .Spawn,     path = full_path}
 					emit = true
 				} else if is_dir {
-					ev   = EyeEvent{action = .ZoneAdded,  path = full_path}
+					ev   = EyeEvent{action = .ZoneAdded, path = full_path}
 					emit = true
 				}
 
 			case win.FILE_ACTION_REMOVED:
 				if is_cit {
-					ev   = EyeEvent{action = .Death,       path = full_path}
+					ev   = EyeEvent{action = .Death,        path = full_path}
 					emit = true
 				} else if is_dir {
-					ev   = EyeEvent{action = .ZoneRemoved, path = full_path}
+					ev   = EyeEvent{action = .ZoneRemoved,  path = full_path}
 					emit = true
 				}
 
@@ -370,12 +372,11 @@ watcher_thread_proc :: proc(raw: rawptr) {
 				}
 
 			case win.FILE_ACTION_RENAMED_OLD_NAME:
-				// Hold the old path; the very next notification will be NEW_NAME.
+				// Store the old path and wait for the matching NEW_NAME event.
 				if rename_old != "" { delete(rename_old) }
 				rename_old = strings.clone(full_path, context.allocator)
 				delete(full_path)
-				// Mark full_path as consumed so the cleanup below doesn't double-free it.
-				full_path = ""
+				path_used = true // already freed above — don't touch it again
 
 			case win.FILE_ACTION_RENAMED_NEW_NAME:
 				if is_cit {
@@ -401,8 +402,8 @@ watcher_thread_proc :: proc(raw: rawptr) {
 				sync.mutex_lock(&eye.mu)
 				append(&eye.events, ev)
 				sync.mutex_unlock(&eye.mu)
-			} else if ev.path == "" {
-				// full_path wasn't consumed — free it to avoid leaking.
+			} else if !path_used {
+				// full_path was allocated but not consumed — free it.
 				delete(full_path)
 			}
 

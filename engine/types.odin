@@ -42,6 +42,7 @@ GameState :: struct {
 	citizens:       [dynamic]Citizen,
 	zones:          [dynamic]Zone,
 	events:         [dynamic]GameEvent,
+	eye:            EyeState, // live filesystem watcher (The Eye)
 	selected:       i32,
 	citizen_scroll: i32,
 	tick:           f64,
@@ -65,6 +66,9 @@ make_game_state :: proc() -> GameState {
 		for c in citizens { append(&s.citizens, c) }
 		delete(citizens)
 	}
+
+	start_the_eye(&s.eye, "world")
+
 	// Events (newest first)
 	append(&s.events, GameEvent{text="Gareth won the Market election",    kind=.Info})
 	append(&s.events, GameEvent{text="Lys moved to Residential Quarter",  kind=.Move})
@@ -77,6 +81,7 @@ make_game_state :: proc() -> GameState {
 }
 
 destroy_game_state :: proc(s: ^GameState) {
+	stop_the_eye(&s.eye)
 	delete(s.citizens)
 	delete(s.zones)
 	delete(s.events)

@@ -29,6 +29,7 @@ main :: proc() {
 update :: proc(s: ^eng.GameState, dt: f64) {
 	s.tick += dt
 
+	eng.drain_eye_events(&s.eye, s)
 	eng.tick_simulation(s, dt)
 
 	// Only orbit when the mouse is over the 3D viewport

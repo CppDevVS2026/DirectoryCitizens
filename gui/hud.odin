@@ -57,7 +57,12 @@ Draw_Hud :: proc(s: ^eng.GameState) {
 	tick_str := fmt.ctprintf("tick %.1f", s.tick)
 	tw2      := rl.MeasureText(tick_str, 11)
 	rl.DrawText(tick_str, px + pw - tw2 - 12, 34, 11, COL_DIM)
-	rl.DrawText("Watching: world/", px + 12, 50, 11, COL_DIM)
+	// Blinking dot — toggles once per second to show The Eye is alive.
+	blink_on := (i32(s.tick) % 2) == 0
+	dot_col  := rl.Color{55, 200, 90, 255} if blink_on else COL_DIM
+	rl.DrawCircle(px + 18, 56, 4, dot_col)
+	watch_str := fmt.ctprintf("Watching: world/  [%d citizens]", len(s.citizens))
+	rl.DrawText(watch_str, px + 28, 50, 11, COL_DIM)
 
 	y = hdr_h + 6
 

@@ -100,6 +100,11 @@ Draw_Hud :: proc(s: ^eng.GameState) {
 	eye_str := fmt.ctprintf("THE EYE  ·  %d pop  ·  Day %d  %02d:00%s", len(s.citizens), world_day, world_hr, speed_tag)
 	rl.DrawText(eye_str, px + 28, 30, 10, COL_DIM)
 
+	// World history stats (right-aligned)
+	hist_str := fmt.ctprintf("deaths: %d  peak: %d", s.total_deaths, s.max_pop_seen)
+	hw       := rl.MeasureText(hist_str, 9)
+	rl.DrawText(hist_str, px + pw - hw - 8, 30, 9, COL_TEXT_DIM)
+
 	// Unrest bar
 	unrest_y  := i32(52)
 	unrest_lw := i32(46)

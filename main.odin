@@ -23,6 +23,7 @@ main :: proc() {
 		dt := f64(rl.GetFrameTime())
 		update(&state, dt)
 		eng.smooth_citizens(&state, dt)
+		gui.Tick_Death_Markers(&state, f32(dt))
 
 		game_tick := int(state.tick / state.tick_rate) if state.tick_rate > 0 else 0
 

@@ -50,6 +50,11 @@ GameEvent :: struct {
 	tick: f64,      // s.tick at the moment the event fired (for timestamp display)
 }
 
+DeathMarker :: struct {
+	pos: rl.Vector3,
+	age: f32,   // seconds; markers fade and vanish at 30s
+}
+
 GameState :: struct {
 	camera:         rl.Camera3D,
 	citizens:       [dynamic]Citizen,
@@ -63,7 +68,10 @@ GameState :: struct {
 	citizen_scroll: i32,
 	tick:           f64,
 	paused:         bool,
-	speed:          f32,   // 1.0 = normal, 2.0 = fast, 0.5 = slow
+	speed:          f32,        // 1.0 = normal, 2.0 = fast, 4.0 = fastest
+	total_deaths:   int,
+	max_pop_seen:   int,
+	death_markers:  [dynamic]DeathMarker,
 }
 
 make_game_state :: proc() -> GameState {
@@ -108,4 +116,5 @@ destroy_game_state :: proc(s: ^GameState) {
 	delete(s.citizens)
 	delete(s.zones)
 	delete(s.events)
+	delete(s.death_markers)
 }

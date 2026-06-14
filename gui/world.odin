@@ -68,6 +68,7 @@ Draw_World :: proc(s: ^eng.GameState) {
 	}
 
 	draw_social_links(s.citizens[:])
+	draw_death_markers(s)
 
 	for &c, ci in s.citizens {
 		bob   := f32(math.sin_f64(s.tick * 2.0 + f64(ci) * 1.3)) * 0.06
@@ -641,6 +642,35 @@ draw_overlays :: proc(s: ^eng.GameState) {
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
+
+// draw_death_markers — fading cross markers at locations where citizens died.
+// Called from inside BeginMode3D. Markers age each frame and vanish after 30s.
+draw_death_markers :: proc(s: ^eng.GameState) {
+	for &dm in s.death_markers {
+		t     := dm.age / 30.0                      // 0→1 over 30 seconds
+		alpha := u8(max(0, 255 - int(t * 255)))
+		col   := rl.Color{200, 55, 55, alpha}
+		r     := f32(0.18)
+		y     := dm.pos.y + 0.08
+		// Small cross: two perpendicular horizontal lines
+		rl.DrawLine3D({dm.pos.x - r, y, dm.pos.z}, {dm.pos.x + r, y, dm.pos.z}, col)
+		rl.DrawLine3D({dm.pos.x, y, dm.pos.z - r}, {dm.pos.x, y, dm.pos.z + r}, col)
+		// Rising soul particle
+		rise := t * 1.8
+		rl.DrawSphere({dm.pos.x, dm.pos.y + rise + 0.3, dm.pos.z}, 0.06 * (1 - t), {200, 55, 55, u8(max(0, int(alpha / 2)))})
+	}
+}
+
+// tick_death_markers — age markers each frame; remove expired ones.
+// Call this from main.odin each frame (outside 3D mode).
+Tick_Death_Markers :: proc(s: ^eng.GameState, dt: f32) {
+	for i := len(s.death_markers) - 1; i >= 0; i -= 1 {
+		s.death_markers[i].age += dt
+		if s.death_markers[i].age >= 30 {
+			ordered_remove(&s.death_markers, i)
+		}
+	}
+}
 
 zone_stats :: proc(s: ^eng.GameState, z: eng.Zone) -> (pop: int, stressed: int, avg_health: f32) {
 	total_hp := f32(0)

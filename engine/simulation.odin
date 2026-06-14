@@ -39,6 +39,8 @@ tick_simulation :: proc(s: ^GameState, dt: f64) {
 	tick_behavior(s)
 	tick_politics(s)
 	tick_renewal(s)
+	tick_world_events(s)
+	if len(s.citizens) > s.max_pop_seen { s.max_pop_seen = len(s.citizens) }
 }
 
 /*
@@ -105,13 +107,12 @@ tick_needs :: proc(s: ^GameState) {
 		}
 
 		// --- Permadeath ---
-		// health == 0: delete the .citizen file from disk, log the death,
-		// and remove the citizen from the in-memory array.
-		// We remove BEFORE saving so we don't re-create a just-deleted file.
 		if c.health <= 0 {
+			append(&s.death_markers, DeathMarker{pos = c.world_pos, age = 0})
+			s.total_deaths += 1
 			os.remove(string(c.path))
 			push_event(s, fmt.ctprintf("%s has died", c.name), .Death)
-			ordered_remove(&s.citizens, i) // safe because we're iterating backwards
+			ordered_remove(&s.citizens, i)
 			continue
 		}
 
@@ -559,4 +560,109 @@ spawn_arrival :: proc(s: ^GameState, zone_name: string) {
 	text := strings.to_string(b)
 	_ = os.write_entire_file(file_name, transmute([]u8)text)
 	// The Eye's Spawn event will handle adding them to s.citizens
+}
+
+// ---------------------------------------------------------------------------
+// World events — random narrative happenings that affect citizens
+// ---------------------------------------------------------------------------
+
+@(private)
+world_event_tick: int
+
+/*
+	tick_world_events — fires a random world event every ~25 simulation ticks.
+
+	Events add drama and story variety beyond plain stat decay. Each event
+	picks a set of affected citizens (by zone or globally) and tweaks their
+	needs, then pushes a flavor line to the event log.
+*/
+tick_world_events :: proc(s: ^GameState) {
+	world_event_tick += 1
+	if world_event_tick % 25 != 0 { return }
+	if len(s.citizens) == 0       { return }
+
+	// Deterministic "random" using tick + event counter so replays are stable.
+	seed := u32(world_event_tick) * 2654435761
+	ev   := int(seed >> 16) % 12
+
+	switch ev {
+	case 0:
+		push_event(s, "Blight strikes the Market District — shelves are bare", .Info)
+		for &c in s.citizens {
+			if string(c.zone) == "Market District" { c.hunger = min(c.hunger + 28, 100) }
+		}
+
+	case 1:
+		push_event(s, "A cold snap grips Root Directory", .Info)
+		for &c in s.citizens { c.sleep = max(c.sleep - 18, 0) }
+
+	case 2:
+		push_event(s, "Harvest festival — the streets smell of bread", .Info)
+		for &c in s.citizens {
+			c.hunger = max(c.hunger - 32, 0)
+			c.social = min(c.social + 20, 100)
+		}
+
+	case 3:
+		// Sickness in a random zone
+		zi   := int(seed >> 8) % max(len(s.zones), 1)
+		zn   := s.zones[zi].name
+		push_event(s, fmt.ctprintf("Sickness spreads through %s", zn), .Info)
+		for &c in s.citizens {
+			if c.zone == zn { c.health = max(c.health - 18, 1) }
+		}
+
+	case 4:
+		push_event(s, "Rain keeps everyone indoors — rest comes easy", .Info)
+		for &c in s.citizens { c.sleep = min(c.sleep + 22, 100) }
+
+	case 5:
+		push_event(s, "Long night — exhaustion weighs on all", .Info)
+		for &c in s.citizens { c.sleep = max(c.sleep - 14, 0) }
+
+	case 6:
+		push_event(s, "The Null Quarter stirs — whispers in the walls", .Info)
+		for &c in s.citizens {
+			if string(c.zone) == "The Null Quarter" {
+				c.stress_ticks += 2
+				c.health = max(c.health - 8, 1)
+			}
+		}
+
+	case 7:
+		push_event(s, "Merchant caravan arrives — the Market overflows", .Info)
+		for &c in s.citizens {
+			if string(c.zone) == "Market District" { c.hunger = max(c.hunger - 40, 0) }
+		}
+
+	case 8:
+		push_event(s, "The Keep rallies — soldiers' health bolstered", .Info)
+		for &c in s.citizens {
+			if string(c.zone) == "The Keep" { c.health = min(c.health + 15, 100) }
+		}
+
+	case 9:
+		push_event(s, "Archive fire scare — scholars flee the stacks", .Info)
+		for &c in s.citizens {
+			if string(c.zone) == "The Archive" {
+				c.health = max(c.health - 10, 1)
+				c.stress_ticks += 1
+			}
+		}
+
+	case 10:
+		push_event(s, "A wandering healer visits Root Directory", .Info)
+		// Heal the most injured citizen
+		worst_i := 0
+		for i in 1..<len(s.citizens) {
+			if s.citizens[i].health < s.citizens[worst_i].health { worst_i = i }
+		}
+		s.citizens[worst_i].health = min(s.citizens[worst_i].health + 35, 100)
+		s.citizens[worst_i].stress_ticks = 0
+		push_event(s, fmt.ctprintf("%s was healed by the wanderer", s.citizens[worst_i].name), .Info)
+
+	case 11:
+		push_event(s, "City-wide curfew — no one moves until dawn", .Info)
+		for &c in s.citizens { c.social = max(c.social - 25, 0) }
+	}
 }

@@ -55,6 +55,15 @@ load_citizen :: proc(file_path: string, zone_name: string) -> (Citizen, bool) {
 		case "social":
 			v, ok := strconv.parse_f32(val)
 			if ok {c.social = v}
+		case "pos_x":
+			v, ok := strconv.parse_f32(val)
+			if ok {c.world_pos.x = v}
+		case "pos_y":
+			v, ok := strconv.parse_f32(val)
+			if ok {c.world_pos.y = v}
+		case "pos_z":
+			v, ok := strconv.parse_f32(val)
+			if ok {c.world_pos.z = v}
 		}
 	}
 
@@ -67,17 +76,17 @@ load_citizen :: proc(file_path: string, zone_name: string) -> (Citizen, bool) {
 // Returns a dynamic array of Citizens — caller owns it.
 scan_zone :: proc(dir_path: string, zone_name: string) -> [dynamic]Citizen {
 	result: [dynamic]Citizen
-    
-	
+
+
 	handle, open_err := os.open(dir_path)
-	if open_err != nil { return result }
+	if open_err != nil {return result}
 	defer os.close(handle)
 
 	infos, _ := os.read_dir(handle, -1, context.allocator)
 	defer os.file_info_slice_delete(infos, context.allocator)
 
 	for info in infos {
-		if filepath.ext(info.name) != ".citizen" { continue }
+		if filepath.ext(info.name) != ".citizen" {continue}
 
 		full_path, _ := filepath.join({dir_path, info.name})
 		defer delete(full_path)
@@ -85,7 +94,7 @@ scan_zone :: proc(dir_path: string, zone_name: string) -> [dynamic]Citizen {
 		if c, ok := load_citizen(full_path, zone_name); ok {
 			append(&result, c)
 		}
-		
+
 	}
 
 	return result

@@ -5,6 +5,7 @@ import rl "vendor:raylib"
 Citizen :: struct {
 	name:      cstring,
 	zone:      cstring,
+	path:      cstring,      // full path to the .citizen file on disk, e.g. "world/Market District/aldric.citizen"
 	status:    cstring,
 	health:    f32,
 	hunger:    f32,

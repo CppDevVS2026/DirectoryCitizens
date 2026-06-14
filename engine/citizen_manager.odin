@@ -238,6 +238,7 @@ load_citizen :: proc(file_path: string, zone_name: string) -> (Citizen, bool) {
 	}
 
 	c.zone  = strings.clone_to_cstring(zone_name, context.allocator)
+	c.path  = strings.clone_to_cstring(file_path, context.allocator)
 	c.color = citizen_color(string(c.name) if c.name != nil else "")
 
 	// A citizen with no name is malformed — reject it

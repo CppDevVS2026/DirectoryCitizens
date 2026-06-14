@@ -75,3 +75,4 @@ Milestone goal: Citizens live on disk, The Eye watches, needs tick in real-time.
 - [x] T1.4 — `save_citizen()` implemented — *PM*
 - [x] T1.5 — Zone color palette (name hash → ZONE_PALETTE) — *PM*
 - [x] T1.6 — Citizen color from name hash — *PM*
+- [x] T3.1 — `tick_needs()` active — hunger/sleep/social decay each tick — *Dev*

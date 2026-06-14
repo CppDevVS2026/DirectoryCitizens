@@ -18,18 +18,20 @@ tick_simulation :: proc(s: ^GameState, dt: f64) {
 	accumulator -= TICK_RATE
 
 	tick_needs(s)
-	// tick_behavior(s)  // uncomment when ready
-	// tick_politics(s)  // uncomment when ready
+	// tick_behavior(s)  — E5, not yet implemented
+	// tick_politics(s)  — E6, not yet implemented
 }
 
-// tick_needs decays citizen needs each simulation step.
 tick_needs :: proc(s: ^GameState) {
 	for &c in s.citizens {
-		// TODO: uncomment and tune these as you go
-		// c.hunger = min(c.hunger + 2, 100)   // starving at 100
-		// c.sleep  = max(c.sleep  - 1,   0)   // exhausted at 0
-		// c.social = max(c.social - 0.5, 0)   // lonely at 0
-		_ = &c
+		c.hunger = min(c.hunger + 2,   100) // starving at 100
+		c.sleep  = max(c.sleep  - 1,     0) // exhausted at 0
+		c.social = max(c.social - 0.5,   0) // lonely at 0
+
+		// Write updated stats back to the .citizen file on disk.
+		// c.path was set by load_citizen — it's the full path like
+		// "world/Market District/aldric.citizen".
+		save_citizen(c, string(c.path))
 	}
 }
 

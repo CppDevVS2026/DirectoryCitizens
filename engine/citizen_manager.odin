@@ -79,9 +79,10 @@ scan_zone :: proc(dir_path: string, zone_name: string) -> [dynamic]Citizen {
 	for info in infos {
 		if filepath.ext(info.name) != ".citizen" { continue }
 
-		full_path := filepath.join(dir_path, info.name)
+		full_path, _ := filepath.join(dir_path, info.name)
 		defer delete(full_path)
-
+		
+		
 		
 	}
 

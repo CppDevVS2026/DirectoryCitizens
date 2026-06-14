@@ -11,6 +11,7 @@ Citizen :: struct {
 	hunger:    f32,
 	sleep:     f32,
 	social:    f32,
+	stress_ticks:    f32,
 	color:     rl.Color,
 	world_pos: rl.Vector3,
 }

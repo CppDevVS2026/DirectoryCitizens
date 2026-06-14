@@ -1,9 +1,9 @@
 name   = Seren
 status = Whispering things she shouldn't know
 health = 92
-hunger = 20
-sleep  = 90
-social = 80
-pos_x  = -5.5
-pos_y  = 0.5
-pos_z  = -8.5
+hunger = 64
+sleep  = 68
+social = 69
+pos_x  = -5.50
+pos_y  = 0.50
+pos_z  = -8.50

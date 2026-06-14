@@ -1,9 +1,9 @@
 name   = Gareth
 status = Drinking alone, staring at nothing
 health = 72
-hunger = 55
-sleep  = 40
-social = 95
-pos_x  = -8.5
-pos_y  = 0.5
-pos_z  = -5.5
+hunger = 99
+sleep  = 18
+social = 84
+pos_x  = -8.50
+pos_y  = 0.50
+pos_z  = -5.50

@@ -1,9 +1,9 @@
 name   = Echo
 status = Repeating herself without knowing it
 health = 55
-hunger = 70
-sleep  = 30
-social = 5
-pos_x  = 13.5
-pos_y  = 0.5
-pos_z  = 3.5
+hunger = 100
+sleep  = 8
+social = 0
+pos_x  = 13.50
+pos_y  = 0.50
+pos_z  = 3.50

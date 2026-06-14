@@ -1,9 +1,9 @@
 name   = Thane the Elder
 status = Cannot remember what he was doing
 health = 65
-hunger = 80
-sleep  = 20
-social = 55
-pos_x  = 5.5
-pos_y  = 0.5
-pos_z  = -4.5
+hunger = 100
+sleep  = 0
+social = 44
+pos_x  = 5.50
+pos_y  = 0.50
+pos_z  = -4.50

@@ -1,9 +1,9 @@
 name   = Petra
 status = Writing letters no one will answer
 health = 78
-hunger = 45
-sleep  = 60
-social = 25
-pos_x  = 6.0
-pos_y  = 0.5
-pos_z  = -6.0
+hunger = 89
+sleep  = 38
+social = 14
+pos_x  = 6.00
+pos_y  = 0.50
+pos_z  = -6.00

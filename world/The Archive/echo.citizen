@@ -1,9 +1,0 @@
-name   = Echo
-status = Repeating herself without knowing it
-health = 55
-hunger = 100
-sleep  = 0
-social = 0
-pos_x  = 13.50
-pos_y  = 0.50
-pos_z  = 3.50

@@ -1,9 +1,0 @@
-name   = Petra
-status = Writing letters no one will answer
-health = 78
-hunger = 100
-sleep  = 6
-social = 0
-pos_x  = 6.00
-pos_y  = 0.50
-pos_z  = -6.00

@@ -1,9 +1,0 @@
-name   = Corvus
-status = Reviewing the same report for the third time
-health = 70
-hunger = 100
-sleep  = 1
-social = 0
-pos_x  = 1.50
-pos_y  = 3.00
-pos_z  = 7.00

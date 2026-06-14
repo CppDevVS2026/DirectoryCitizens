@@ -31,19 +31,19 @@ import "core:fmt"
 import "core:path/filepath"
 import "core:strings"
 import "core:sync"
-import "core:thread"
 import win "core:sys/windows"
+import "core:thread"
 
 // ---------------------------------------------------------------------------
 // Public types
 // ---------------------------------------------------------------------------
 
 EyeAction :: enum {
-	Spawn,       // a .citizen file was created
-	Death,       // a .citizen file was deleted
-	Rename,      // a .citizen file was renamed (name change = life event)
-	StatChange,  // a .citizen file was modified (stats updated externally)
-	ZoneAdded,   // a subdirectory was created (new zone)
+	Spawn, // a .citizen file was created
+	Death, // a .citizen file was deleted
+	Rename, // a .citizen file was renamed (name change = life event)
+	StatChange, // a .citizen file was modified (stats updated externally)
+	ZoneAdded, // a subdirectory was created (new zone)
 	ZoneRemoved, // a subdirectory was removed (zone collapsed)
 }
 
@@ -57,9 +57,9 @@ EyeState :: struct {
 	events:     [dynamic]EyeEvent,
 	mu:         sync.Mutex,
 	running:    bool,
-	handle:     win.HANDLE,     // open directory handle used by ReadDirectoryChangesW
+	handle:     win.HANDLE, // open directory handle used by ReadDirectoryChangesW
 	thread:     ^thread.Thread,
-	watch_root: string,         // e.g. "world" — stored for path reconstruction
+	watch_root: string, // e.g. "world" — stored for path reconstruction
 }
 
 // ---------------------------------------------------------------------------
@@ -89,7 +89,7 @@ RDCW_BUFFER_SIZE :: 65536
 */
 start_the_eye :: proc(eye: ^EyeState, watch_path: string) {
 	eye.watch_root = strings.clone(watch_path)
-	eye.running    = true
+	eye.running = true
 
 	// utf8_to_wstring uses context.temp_allocator by default — fine here since
 	// we only need the wide string for the CreateFileW call below.
@@ -112,9 +112,9 @@ start_the_eye :: proc(eye: ^EyeState, watch_path: string) {
 		return
 	}
 
-	data      := new(WatcherData)
-	data.eye   = eye
-	data.root  = strings.clone(watch_path)
+	data := new(WatcherData)
+	data.eye = eye
+	data.root = strings.clone(watch_path)
 
 	eye.thread = thread.create_and_start_with_data(data, watcher_thread_proc)
 }
@@ -147,7 +147,7 @@ stop_the_eye :: proc(eye: ^EyeState) {
 	sync.mutex_lock(&eye.mu)
 	for ev in eye.events {
 		delete(ev.path)
-		if ev.old_path != "" { delete(ev.old_path) }
+		if ev.old_path != "" {delete(ev.old_path)}
 	}
 	delete(eye.events)
 	sync.mutex_unlock(&eye.mu)
@@ -167,14 +167,14 @@ stop_the_eye :: proc(eye: ^EyeState) {
 */
 drain_eye_events :: proc(eye: ^EyeState, s: ^GameState) {
 	sync.mutex_lock(&eye.mu)
-	pending   := eye.events
+	pending := eye.events
 	eye.events = {}
 	sync.mutex_unlock(&eye.mu)
 
 	defer {
 		for ev in pending {
 			delete(ev.path)
-			if ev.old_path != "" { delete(ev.old_path) }
+			if ev.old_path != "" {delete(ev.old_path)}
 		}
 		delete(pending)
 	}
@@ -203,13 +203,13 @@ drain_eye_events :: proc(eye: ^EyeState, s: ^GameState) {
 			// Reload stats from disk; preserve runtime-only fields not stored on disk.
 			// No event is pushed — this fires on every auto-save tick, not just
 			// external edits, and would flood the log with noise.
-			for i in 0..<len(s.citizens) {
+			for i in 0 ..< len(s.citizens) {
 				c := &s.citizens[i]
 				if string(c.path) == ev.path {
 					zone_name := string(c.zone)
 					if fresh, ok := load_citizen(ev.path, zone_name); ok {
 						fresh.stress_ticks = c.stress_ticks
-						fresh.behavior     = c.behavior
+						fresh.behavior = c.behavior
 						s.citizens[i] = fresh
 					}
 					break
@@ -217,10 +217,10 @@ drain_eye_events :: proc(eye: ^EyeState, s: ^GameState) {
 			}
 
 		case .Rename:
-			for i in 0..<len(s.citizens) {
+			for i in 0 ..< len(s.citizens) {
 				c := &s.citizens[i]
 				if string(c.path) == ev.old_path {
-					old_name  := c.name
+					old_name := c.name
 					zone_name := string(c.zone)
 					if fresh, ok := load_citizen(ev.path, zone_name); ok {
 						fresh.stress_ticks = c.stress_ticks
@@ -233,20 +233,23 @@ drain_eye_events :: proc(eye: ^EyeState, s: ^GameState) {
 
 		case .ZoneAdded:
 			zone_name := filepath.base(ev.path)
-			already   := false
+			already := false
 			for &z in s.zones {
-				if string(z.path) == ev.path { already = true; break }
+				if string(z.path) == ev.path {already = true; break}
 			}
 			if !already {
 				pos, size := zone_layout(zone_name, len(s.zones))
-				zname_c   := strings.clone_to_cstring(zone_name, context.allocator)
-				append(&s.zones, Zone{
-					name  = zname_c,
-					path  = strings.clone_to_cstring(ev.path, context.allocator),
-					pos   = pos,
-					size  = size,
-					color = zone_color(zone_name),
-				})
+				zname_c := strings.clone_to_cstring(zone_name, context.allocator)
+				append(
+					&s.zones,
+					Zone {
+						name = zname_c,
+						path = strings.clone_to_cstring(ev.path, context.allocator),
+						pos = pos,
+						size = size,
+						color = zone_color(zone_name),
+					},
+				)
 				push_event(s, fmt.ctprintf("Zone '%s' opened", zname_c), .Info)
 			}
 
@@ -276,7 +279,7 @@ drain_eye_events :: proc(eye: ^EyeState, s: ^GameState) {
 @(private)
 watcher_thread_proc :: proc(raw: rawptr) {
 	data := (^WatcherData)(raw)
-	eye  := data.eye
+	eye := data.eye
 	root := data.root
 	defer {
 		delete(root)
@@ -285,9 +288,7 @@ watcher_thread_proc :: proc(raw: rawptr) {
 
 	// What change types we watch for.
 	notify_filter := win.DWORD(
-		win.FILE_NOTIFY_CHANGE_FILE_NAME  |
-		win.FILE_NOTIFY_CHANGE_DIR_NAME   |
-		win.FILE_NOTIFY_CHANGE_LAST_WRITE,
+		win.FILE_NOTIFY_CHANGE_FILE_NAME | win.FILE_NOTIFY_CHANGE_DIR_NAME | win.FILE_NOTIFY_CHANGE_LAST_WRITE,
 	)
 
 	buf := make([]u8, RDCW_BUFFER_SIZE)
@@ -305,18 +306,18 @@ watcher_thread_proc :: proc(raw: rawptr) {
 			eye.handle,
 			raw_data(buf),
 			win.DWORD(len(buf)),
-			win.TRUE,         // bWatchSubtree
+			win.TRUE, // bWatchSubtree
 			notify_filter,
 			&bytes_returned,
 			nil,
 			nil,
 		)
 
-		if ok == win.FALSE || bytes_returned == 0 { break }
+		if ok == win.FALSE || bytes_returned == 0 {break}
 
 		// Walk the variable-length FILE_NOTIFY_INFORMATION chain.
 		// NextEntryOffset == 0 means this is the last entry.
-		base   := uintptr(raw_data(buf))
+		base := uintptr(raw_data(buf))
 		offset := uintptr(0)
 
 		for {
@@ -324,76 +325,103 @@ watcher_thread_proc :: proc(raw: rawptr) {
 
 			// file_name is declared as [1]WCHAR but is actually file_name_length bytes long.
 			// file_name_length is in *bytes* — divide by 2 for u16 count.
-			n_chars   := int(info.file_name_length) / 2
-			name_ptr  := ([^]u16)(rawptr(uintptr(rawptr(info)) + offset_of(win.FILE_NOTIFY_INFORMATION, file_name)))
+			n_chars := int(info.file_name_length) / 2
+			name_ptr := ([^]u16)(rawptr(uintptr(rawptr(info)) + offset_of(win.FILE_NOTIFY_INFORMATION, file_name)))
 			rel_name, _ := win.wstring_to_utf8(win.wstring(name_ptr), n_chars, context.allocator)
 
 			// Win32 gives us a path relative to the watched root with backslashes.
-			// Normalize to forward slashes to match our filepath conventions.
-			for i in 0..<len(rel_name) {
-				if rel_name[i] == '\\' { (transmute([]u8)rel_name)[i] = '/' }
-			}
-
 			full_path, _ := filepath.join({root, rel_name}, context.allocator)
 			delete(rel_name)
 
-			ext    := filepath.ext(filepath.base(full_path))
+			// Normalize to forward slashes to match our internal conventions
+			for i in 0 ..< len(full_path) {
+				if full_path[i] == '\\' {
+					(transmute([]u8)full_path)[i] = '/'
+				}
+			}
+
+			ext := filepath.ext(filepath.base(full_path))
 			is_cit := ext == ".citizen"
 			// Treat as a directory if it has no extension (crude but works for world/ layout).
 			is_dir := !strings.contains(filepath.base(full_path), ".")
 
-			ev        := EyeEvent{}
-			emit      := false
+			ev := EyeEvent{}
+			emit := false
 			path_used := false // true when full_path ownership was transferred or freed
 
 			switch info.action {
 			case win.FILE_ACTION_ADDED:
 				if is_cit {
-					ev   = EyeEvent{action = .Spawn,     path = full_path}
+					ev = EyeEvent {
+						action = .Spawn,
+						path   = full_path,
+					}
 					emit = true
 				} else if is_dir {
-					ev   = EyeEvent{action = .ZoneAdded, path = full_path}
+					ev = EyeEvent {
+						action = .ZoneAdded,
+						path   = full_path,
+					}
 					emit = true
 				}
 
 			case win.FILE_ACTION_REMOVED:
 				if is_cit {
-					ev   = EyeEvent{action = .Death,        path = full_path}
+					ev = EyeEvent {
+						action = .Death,
+						path   = full_path,
+					}
 					emit = true
 				} else if is_dir {
-					ev   = EyeEvent{action = .ZoneRemoved,  path = full_path}
+					ev = EyeEvent {
+						action = .ZoneRemoved,
+						path   = full_path,
+					}
 					emit = true
 				}
 
 			case win.FILE_ACTION_MODIFIED:
 				if is_cit {
-					ev   = EyeEvent{action = .StatChange, path = full_path}
+					ev = EyeEvent {
+						action = .StatChange,
+						path   = full_path,
+					}
 					emit = true
 				}
 
 			case win.FILE_ACTION_RENAMED_OLD_NAME:
 				// Store the old path and wait for the matching NEW_NAME event.
-				if rename_old != "" { delete(rename_old) }
+				if rename_old != "" {delete(rename_old)}
 				rename_old = strings.clone(full_path, context.allocator)
 				delete(full_path)
 				path_used = true // already freed above — don't touch it again
 
 			case win.FILE_ACTION_RENAMED_NEW_NAME:
 				if is_cit {
-					ev   = EyeEvent{action = .Rename, path = full_path, old_path = rename_old}
+					ev = EyeEvent {
+						action   = .Rename,
+						path     = full_path,
+						old_path = rename_old,
+					}
 					emit = true
 					rename_old = ""
 				} else {
 					// Directory rename → remove old zone, add new one.
 					if rename_old != "" {
-						old_ev := EyeEvent{action = .ZoneRemoved, path = strings.clone(rename_old, context.allocator)}
+						old_ev := EyeEvent {
+							action = .ZoneRemoved,
+							path   = strings.clone(rename_old, context.allocator),
+						}
 						sync.mutex_lock(&eye.mu)
 						append(&eye.events, old_ev)
 						sync.mutex_unlock(&eye.mu)
 						delete(rename_old)
 						rename_old = ""
 					}
-					ev   = EyeEvent{action = .ZoneAdded, path = full_path}
+					ev = EyeEvent {
+						action = .ZoneAdded,
+						path   = full_path,
+					}
 					emit = true
 				}
 			}
@@ -407,12 +435,12 @@ watcher_thread_proc :: proc(raw: rawptr) {
 				delete(full_path)
 			}
 
-			if info.next_entry_offset == 0 { break }
+			if info.next_entry_offset == 0 {break}
 			offset += uintptr(info.next_entry_offset)
 		}
 	}
 
-	if rename_old != "" { delete(rename_old) }
+	if rename_old != "" {delete(rename_old)}
 }
 
 // ---------------------------------------------------------------------------
@@ -425,6 +453,7 @@ watcher_thread_proc :: proc(raw: rawptr) {
 */
 @(private)
 zone_name_from_path :: proc(path: string) -> string {
-	dir := filepath.dir(path)         // "world/Market District"
-	return filepath.base(dir)         // "Market District"  (no allocation — slice of dir)
+	dir := filepath.dir(path) // "world/Market District"
+	return filepath.base(dir) // "Market District"  (no allocation — slice of dir)
 }
+

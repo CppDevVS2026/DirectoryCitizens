@@ -2,3 +2,6 @@ build/
 world/
 bin/
 .idea/
+.output.txt
+*.exe
+*.pdb

@@ -118,9 +118,9 @@ make_game_state :: proc() -> GameState {
 		projection = .PERSPECTIVE,
 	}
 
-	world_cfg := world.load_world_ini("world/world.cfg", TICK_RATE)
-	s.tick_rate = cfg.tick_rate
-	s.world_name = cfg.world_name
+	world_ini_cfg := world.load_world_ini("world/world.cfg", TICK_RATE)
+	s.tick_rate = world_ini_cfg.tick_rate
+	s.world_name = world_ini_cfg.world_name
 	s.speed = 1.0
 
 	s.zones = scan_world("world")

@@ -79,7 +79,7 @@ scan_zone :: proc(dir_path: string, zone_name: string) -> [dynamic]Citizen {
 	for info in infos {
 		if filepath.ext(info.name) != ".citizen" { continue }
 
-		full_path, _ := filepath.join(dir_path, info.name)
+		full_path, _ := filepath.join({dir_path, info.name})
 		defer delete(full_path)
 
 		if c, ok := load_citizen(full_path, zone_name); ok {
@@ -88,8 +88,7 @@ scan_zone :: proc(dir_path: string, zone_name: string) -> [dynamic]Citizen {
 		
 	}
 
-
-
+	return result
 }
 
 // save_citizen writes a Citizen back to disk as a .citizen file.

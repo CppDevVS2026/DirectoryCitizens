@@ -76,3 +76,6 @@ Milestone goal: Citizens live on disk, The Eye watches, needs tick in real-time.
 - [x] T1.5 — Zone color palette (name hash → ZONE_PALETTE) — *PM*
 - [x] T1.6 — Citizen color from name hash — *PM*
 - [x] T3.1 — `tick_needs()` active — hunger/sleep/social decay each tick — *Dev*
+- [x] T3.2 — Auto-save citizens to disk after each tick — *Dev*
+- [x] T3.3 — Critical state events fire at thresholds (entry-only, no spam) — *Dev + PM*
+- [x] T3.4 — Health decay from sustained need failure; permadeath deletes file — *PM*

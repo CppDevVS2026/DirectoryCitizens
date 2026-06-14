@@ -61,6 +61,12 @@ update :: proc(s: ^eng.GameState, dt: f64) {
 		}
 	}
 
+	// ESC deselects and drops follow
+	if rl.IsKeyPressed(.ESCAPE) {
+		s.selected   = -1
+		s.follow_sel = false
+	}
+
 	// F = toggle camera follow on selected citizen
 	if rl.IsKeyPressed(.F) {
 		s.follow_sel = s.selected >= 0 && !s.follow_sel

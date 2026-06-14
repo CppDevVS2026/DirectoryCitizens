@@ -79,6 +79,7 @@ Draw_World :: proc(s: ^eng.GameState) {
 
 	rl.EndMode3D()
 	draw_overlays(s)
+	Draw_Toasts(s)
 
 	rl.DrawRectangle(PANEL_X - 1, 0, 1, SCREEN_H, COL_BORDER)
 	rl.DrawRectangle(0, SCREEN_H - 22, PANEL_X, 22, {0, 0, 0, 130})
@@ -595,6 +596,48 @@ draw_social_links :: proc(citizens: []eng.Citizen) {
 			)
 		}
 	}
+}
+
+// Draw_Toasts — recent event notifications in the top-left of the 3D viewport.
+// Events fired within the last 6 real seconds appear as stacked boxes.
+Draw_Toasts :: proc(s: ^eng.GameState) {
+	ty     := i32(12)
+	shown  := 0
+	cutoff := s.tick - 6.0
+
+	for &ev in s.events {
+		if ev.tick < cutoff { break }   // events are newest-first; once old, all are old
+		if shown >= 5       { break }
+
+		age   := f32(s.tick - ev.tick)
+		alpha := f32(1 - age / 6.0)
+		col   := event_color_from_kind(ev.kind)
+		fcol  := rl.Color{col.r, col.g, col.b, u8(alpha * 220)}
+		bgcol := rl.Color{6, 8, 14, u8(alpha * 200)}
+		bord  := rl.Color{col.r, col.g, col.b, u8(alpha * 120)}
+
+		tw := rl.MeasureText(ev.text, 11)
+		bw := tw + 28; bh := i32(22)
+		rl.DrawRectangle(10, ty, bw, bh, bgcol)
+		rl.DrawRectangleLines(10, ty, bw, bh, bord)
+		rl.DrawCircle(22, ty + bh/2, 3, fcol)
+		rl.DrawText(ev.text, 30, ty + 5, 11, fcol)
+
+		ty    += bh + 4
+		shown += 1
+	}
+}
+
+@(private)
+event_color_from_kind :: proc(kind: eng.EventKind) -> rl.Color {
+	switch kind {
+	case .Spawn:  return {85,  215, 90,  255}
+	case .Death:  return {225, 60,  55,  255}
+	case .Move:   return {80,  170, 255, 255}
+	case .Rename: return {250, 190, 55,  255}
+	case .Info:   return {140, 155, 175, 255}
+	}
+	return rl.WHITE
 }
 
 // ---------------------------------------------------------------------------

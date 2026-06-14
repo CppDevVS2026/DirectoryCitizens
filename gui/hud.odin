@@ -147,6 +147,9 @@ Draw_Hud :: proc(s: ^eng.GameState) {
 		rl.DrawText("REVOLT IMMINENT", px + 8, unrest_y + 16, 9, rl.Color{COL_DANGER.r, COL_DANGER.g, COL_DANGER.b, pulse})
 	}
 
+	// Day/night arc clock — sun or moon on a semicircle arc
+	draw_day_clock(px + pw - 44, 14, 28, world_hr, world_day)
+
 	// Zone overview strip — one chip per zone showing pop + stress
 	zone_strip_y := i32(94)
 	rl.DrawRectangle(px + 2, zone_strip_y, pw - 2, 27, {10, 13, 20, 255})
@@ -475,6 +478,52 @@ draw_stat_bar_ex :: proc(x, y, w: i32, label: cstring, value: f32, bar_col: rl.C
 	val_str := fmt.ctprintf("%.0f", value)
 	vcol    := COL_DANGER if in_danger else COL_TEXT
 	rl.DrawText(val_str, bx + bw + 5, y + 1, 10, vcol)
+}
+
+// draw_day_clock — small semicircle with sun (day) or moon (night) on the arc.
+// cx, cy = center of semicircle, r = radius, hour = 0-23.
+draw_day_clock :: proc(cx, cy, r: i32, hour: int, day: int) {
+	// Arc background (dim ring)
+	for deg := i32(0); deg <= 180; deg += 6 {
+		rad := f32(deg) * math.PI / 180
+		ax  := cx + i32(f32(r) * math.cos_f32(rad))
+		ay  := cy - i32(f32(r) * math.sin_f32(rad))
+		rl.DrawCircle(ax, ay, 1, {30, 40, 58, 200})
+	}
+	// Horizon line
+	rl.DrawLine(cx - r, cy, cx + r, cy, {28, 38, 55, 200})
+
+	is_day  := hour >= 6 && hour < 20
+	// Map hour to angle on the arc
+	// Day:   hour 6→18 maps to 180°→0° (left to right across top)
+	// Night: hour 18→6 (next day, 18→30) maps to 180°→0°
+	angle_deg := f32(0)
+	if is_day {
+		t         := f32(hour - 6) / 12.0  // 0=6am, 1=6pm
+		angle_deg  = 180 - t * 180
+	} else {
+		night_h := hour if hour >= 18 else hour + 24
+		t        := f32(night_h - 18) / 12.0
+		angle_deg = 180 - t * 180
+	}
+	rad := angle_deg * math.PI / 180
+	bx  := cx + i32(f32(r) * math.cos_f32(rad))
+	by  := cy - i32(f32(r) * math.sin_f32(rad))
+
+	if is_day {
+		rl.DrawCircle(bx, by, 5, {255, 230, 100, 240})
+		rl.DrawCircleLines(bx, by, 7, {255, 230, 100, 60})
+	} else {
+		if by < cy {  // only draw moon above horizon
+			rl.DrawCircle(bx, by, 4, {200, 215, 255, 220})
+		}
+		// Stars (static dots in the arc area)
+		stars := [4][2]i32{{cx - 18, cy - 20}, {cx + 12, cy - 24}, {cx + 22, cy - 10}, {cx - 8, cy - 30}}
+		for st in stars {
+			twinkle := u8(140 + i32(math.sin_f64(f64(day)*1.3 + f64(st[0])*0.1) * 80))
+			rl.DrawCircle(st[0], st[1], 1, {200, 215, 255, twinkle})
+		}
+	}
 }
 
 behavior_color :: proc(b: eng.Behavior) -> rl.Color {

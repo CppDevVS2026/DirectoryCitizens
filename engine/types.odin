@@ -69,6 +69,7 @@ GameState :: struct {
 	tick:           f64,
 	paused:         bool,
 	speed:          f32,        // 1.0 = normal, 2.0 = fast, 4.0 = fastest
+	follow_sel:     bool,       // camera tracks selected citizen when true
 	total_deaths:   int,
 	max_pop_seen:   int,
 	death_markers:  [dynamic]DeathMarker,

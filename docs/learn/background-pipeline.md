@@ -1,32 +1,31 @@
-Got it — a background pipeline: Country definitions → queue → random trigger → spawn zone + citizens into world/. That's a real feature with a few moving parts.
+# Background Spawning Pipeline
 
-Here's what to read, ordered by when you'll need it:
+**Concept:** Country definitions -> Queue -> Random trigger -> Spawn zone and citizens into `world/`.
 
-First: your own codebase
+## Existing Codebase References
 
-These are the three procs you need to deeply understand before writing anything new:
+Before implementing, review these key procedures:
 
-citizen_manager.odin:420 — save_citizen: this is how a citizen gets written to disk. A spawner uses the same pattern to create citizens, not just update them.
-citizen_manager.odin:269 — scan_zone: shows what the spawner must produce for the rest of the game to recognize the new zone.
-simulation.odin:415 — exile_most_stressed: the only place in the codebase that creates a file and moves it at runtime. This is your closest existing model for "spawn something into the world mid-game."
-Second: one Odin stdlib page you haven't touched yet
+- `engine/citizen_manager.odin` - `save_citizen`: Demonstrates how a citizen is written to disk. The spawner will use this same pattern to create citizens.
+- `engine/citizen_manager.odin` - `scan_zone`: Shows what the spawner must produce for the rest of the game to recognize a newly created zone.
+- `engine/simulation.odin` - `exile_most_stressed`: The only place in the codebase that currently creates a file and moves it at runtime. This serves as the closest existing model for spawning entities into the world mid-game.
 
-core:math/rand — pkg.odin-lang.org/core/math/rand
+## Standard Library Requirements
 
-The random trigger and random citizen stat generation both need this. The two procs to focus on: rand.int_max(n) (pick index from queue) and rand.float32_range(lo, hi) (randomize health/hunger/sleep on spawn).
+### `core:math/rand`
+Used for the random trigger and random citizen stat generation.
+- `rand.int_max(n)`: Pick an index from the queue.
+- `rand.float32_range(lo, hi)`: Randomize health/hunger/sleep on spawn.
 
-Third: one OS proc you haven't used yet
+### `core:os`
+Used for creating new subdirectories under `world/` for new countries.
+- `os.make_directory(path)`: Creates the directory. Returns an `os.Error` which must be checked before writing citizen files into it.
 
-os.make_directory — documented at pkg.odin-lang.org/core/os
+## Design Considerations: Country Definitions
 
-Creating a new country means creating a new subdirectory under world/. save_citizen handles writing the files, but the directory has to exist first. os.make_directory(path) returns an os.Error — check it before trying to write citizen files into it.
+Where do Country definitions live? The chosen approach shapes the implementation:
 
-Design question before you touch code:
+1. **Hardcoded Odin structs**: Simplest, requires no parsing, but adding countries requires recompilation.
+2. **`.country` files on disk**: Uses the same `key=value` format as `.citizen` files, loaded at startup into a queue. More flexible and consistent with the game's data model. The Eye already watches `world/`, allowing for potential hot-reloading of country definitions later.
 
-Where do Country definitions live? The answer shapes everything:
-
-Hardcoded Odin structs — simplest, no parsing, but you have to recompile to add countries.
-.country files on disk — same key=value format as .citizen, loaded at startup into a queue. More flexible, consistent with the rest of the game's data model.
-The .country file approach fits the game's pattern — The Eye already watches world/, so you could even hot-reload country definitions later. But the hardcoded approach is a valid first pass.
-
-What are you leaning toward?
+*Recommendation*: The `.country` file approach fits the game's pattern best, though hardcoded structs are a valid first pass.

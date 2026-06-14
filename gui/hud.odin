@@ -263,9 +263,15 @@ Draw_Hud :: proc(s: ^eng.GameState) {
 		rl.DrawText("FD", mini_x + 66,  mini_y - 9, 8, COL_DIM)
 		rl.DrawText("ZZ", mini_x + 132, mini_y - 9, 8, COL_DIM)
 
-		// Click to select
+		// Click to select (and enable follow)
 		if hovered && rl.IsMouseButtonPressed(.LEFT) {
-			s.selected = idx if s.selected != idx else -1
+			if s.selected == idx {
+				s.selected  = -1
+				s.follow_sel = false
+			} else {
+				s.selected  = idx
+				s.follow_sel = true
+			}
 		}
 
 		rl.DrawRectangle(px + 6, iy + item_h - 1, pw - 8, 1, COL_DIVIDER)

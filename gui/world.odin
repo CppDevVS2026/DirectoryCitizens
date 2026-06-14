@@ -73,7 +73,8 @@ Draw_World :: proc(s: ^eng.GameState) {
 	for &c, ci in s.citizens {
 		bob   := f32(math.sin_f64(s.tick * 2.0 + f64(ci) * 1.3)) * 0.06
 		base  := rl.Vector3{c.world_pos.x, bob, c.world_pos.z}
-		draw_citizen_figure(base, c, i32(ci) == s.selected, s.tick, ci)
+		issel := i32(ci) == s.selected
+		draw_citizen_figure(base, c, issel, issel && s.follow_sel, s.tick, ci)
 	}
 
 	rl.EndMode3D()
@@ -84,14 +85,33 @@ Draw_World :: proc(s: ^eng.GameState) {
 
 	speed_str := cstring("")
 	if s.paused {
-		speed_str = "  [PAUSED]"
+		speed_str = "  ⏸PAUSED"
 	} else if s.speed >= 4 {
-		speed_str = "  [×4]"
+		speed_str = "  ×4"
 	} else if s.speed >= 2 {
-		speed_str = "  [×2]"
+		speed_str = "  ×2"
 	}
-	hint := fmt.ctprintf("[Drag] orbit  [Scroll] zoom  [Click] select  [Space] pause  [1/2/3] speed%s", speed_str)
+	follow_str := cstring("  [F] follow") if !s.follow_sel else cstring("  [F] unfollow")
+	hint := fmt.ctprintf("[↑↓] cycle  [Click/↑↓] select%s  [Space] pause  [1/2/3] speed%s", follow_str, speed_str)
 	rl.DrawText(hint, 10, SCREEN_H - 16, 9, {65, 82, 105, 200})
+}
+
+// Draw_Night_Overlay — darkens the 3D viewport post-EndMode3D based on time.
+// This is a 2D rectangle pass so it tints ALL rendered 3D geometry consistently.
+Draw_Night_Overlay :: proc(game_tick: int, vp_w: i32, vp_h: i32) {
+	hour    := game_tick % 24
+	alpha   := f32(0)
+	switch {
+	case hour < 5:  alpha = 0.55
+	case hour < 6:  alpha = 0.55 - f32(hour - 5) * 0.28
+	case hour < 7:  alpha = 0.27 - f32(hour - 6) * 0.27
+	case hour < 18: alpha = 0
+	case hour < 19: alpha = f32(hour - 18) * 0.18
+	case hour < 21: alpha = 0.18 + f32(hour - 19) * 0.18
+	case:           alpha = 0.55
+	}
+	if alpha < 0.01 { return }
+	rl.DrawRectangle(0, 0, vp_w, vp_h, {0, 3, 10, u8(alpha * 255)})
 }
 
 // ---------------------------------------------------------------------------
@@ -498,7 +518,7 @@ draw_jail_watchtower :: proc(pos: rl.Vector3, col: rl.Color, night: bool) {
 // Citizen figure
 // ---------------------------------------------------------------------------
 
-draw_citizen_figure :: proc(base: rl.Vector3, c: eng.Citizen, is_sel: bool, tick: f64, idx: int) {
+draw_citizen_figure :: proc(base: rl.Vector3, c: eng.Citizen, is_sel: bool, is_followed: bool, tick: f64, idx: int) {
 	body_r    := f32(0.12)
 	in_danger := c.hunger >= 80 || c.sleep <= 20
 
@@ -551,6 +571,12 @@ draw_citizen_figure :: proc(base: rl.Vector3, c: eng.Citizen, is_sel: bool, tick
 		rl.DrawCircle3D(foot, 0.27, {1,0,0}, 90, {255, 255, 255, 210})
 		rl.DrawCircle3D(head, 0.22, {1,0,0}, 90, {255, 255, 255, 160})
 		rl.DrawLine3D({base.x, 0.015, base.z}, foot, {255, 255, 255, 70})
+	}
+	if is_sel && is_followed {
+		// Spinning camera-follow ring above head
+		top_y := head.y + 0.28
+		rl.DrawCircle3D({base.x, top_y, base.z}, 0.18, {1,0,0}, 90, {80, 200, 255, 180})
+		rl.DrawCircle3D({base.x, top_y + 0.06, base.z}, 0.12, {1,0,0}, 90, {80, 200, 255, 120})
 	}
 }
 

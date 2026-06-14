@@ -1,2 +1,4 @@
 build/
 world/
+bin/
+.idea/

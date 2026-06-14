@@ -103,13 +103,13 @@ Draw_Night_Overlay :: proc(game_tick: int, vp_w: i32, vp_h: i32) {
 	hour    := game_tick % 24
 	alpha   := f32(0)
 	switch {
-	case hour < 5:  alpha = 0.55
-	case hour < 6:  alpha = 0.55 - f32(hour - 5) * 0.28
-	case hour < 7:  alpha = 0.27 - f32(hour - 6) * 0.27
+	case hour < 5:  alpha = 0.3
+	case hour < 6:  alpha = 0.3 - f32(hour - 5) * 0.15
+	case hour < 7:  alpha = 0.15 - f32(hour - 6) * 0.15
 	case hour < 18: alpha = 0
-	case hour < 19: alpha = f32(hour - 18) * 0.18
-	case hour < 21: alpha = 0.18 + f32(hour - 19) * 0.18
-	case:           alpha = 0.55
+	case hour < 19: alpha = f32(hour - 18) * 0.1
+	case hour < 21: alpha = 0.1 + f32(hour - 19) * 0.1
+	case:           alpha = 0.3
 	}
 	if alpha < 0.01 { return }
 	rl.DrawRectangle(0, 0, vp_w, vp_h, {0, 3, 10, u8(alpha * 255)})

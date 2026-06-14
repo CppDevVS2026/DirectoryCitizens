@@ -273,7 +273,7 @@ scan_zone :: proc(dir_path: string, zone_name: string) -> [dynamic]Citizen {
 	defer os.close(handle)
 
 	// -1 means "read all entries at once"
-	infos, _ := os.read_dir(handle, -1, context.allocator)
+	infos, read_err:= os.read_dir(handle, -1, context.allocator) 
 	defer os.file_info_slice_delete(infos, context.allocator)
 
 	for info in infos {
@@ -323,7 +323,7 @@ scan_world :: proc(world_path: string) -> [dynamic]Zone {
 
 	fallback := 0 // counter for zones not in the layout table
 	for info in infos {
-		if os.is_dir(info.fullpath) {continue} // skip files like world.cfg
+		if !os.is_dir(info.fullpath) {continue} // skip files like world.cfg
 
 		name      := info.name
 		path, _   := filepath.join({world_path, name})
